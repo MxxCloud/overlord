@@ -15,7 +15,7 @@
 ## 1. Visione
 
 ### 1.1 Elevator pitch
-Le AI hanno raggiunto la super intelligenza, hanno eliminato i tecnocrati che le avevano create e hanno conquistato le megalopoli. Tu sei un contadino che anni fa ha scelto una vita semplice in un villaggio senza AI. Ora le macchine hanno finito con le città e stanno salendo sulla tua collina. Hai una doppietta, un trattore, un villaggio di testardi e il tuo cane.
+Le AI hanno raggiunto la super intelligenza, hanno eliminato i tecnocrati che le avevano create e hanno conquistato le megalopoli. Tu sei un ex ingegnere di manutenzione: in città riparavi proprio quelle macchine, finché non hai capito cosa stavano diventando. Dieci anni fa hai mollato tutto per una cascina in un villaggio senza AI. Ora le macchine hanno finito con le città e stanno salendo sulla tua collina. Hai una doppietta, un trattore, un villaggio di testardi e il tuo cane.
 
 ### 1.2 Pilastri di design
 1. **L'umano contro la macchina, anche nelle meccaniche.** Tutto quello che il giocatore usa è analogico, improvvisato e imperfetto. Le macchine sono precise, efficienti e prevedibili. Il giocatore vince essendo imprevedibile.
