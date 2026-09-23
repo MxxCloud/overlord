@@ -11,18 +11,23 @@ extends Node2D
 @export var jump_velocity := -430.0
 @export var gravity := 1100.0
 @export var max_hp := 10.0
-@export var shotgun_range := 380.0      # portata della doppietta in pixel
-@export var shotgun_spread_deg := 14.0  # apertura del cono di pallini
-@export var shotgun_damage := 2.0
-@export var reload_time := 1.4
-@export var fork_damage := 1.5
+@export var shotgun_range := 360.0      # portata della doppietta in pixel
+@export var shotgun_spread_deg := 12.0  # apertura del cono di pallini
+@export var shotgun_damage := 2.5       # danno a bruciapelo; da lontano cala molto
+@export var reload_time := 1.8
+@export var max_reserve := 12           # cartucce di scorta che puoi portare
+@export var fork_damage := 0.5          # il forcone serve a RESPINGERE, non a uccidere
+@export var fork_knockback := 80.0
 @export var fork_range := 60.0
-@export var fork_cooldown := 0.45
+@export var fork_cooldown := 0.9
+@export var refill_interval := 0.6      # alla cascina: 1 cartuccia ogni tot secondi
 @export var repair_cost := 5            # rottami per riparare una difesa
 @export var pickup_radius := 30.0
 
 var hp := 10.0
 var shells := 2           # colpi in canna (la doppietta ne ha 2)
+var reserve := 12         # cartucce di scorta: quando finiscono, niente ricarica!
+var _refill_cd := 0.0
 var facing := 1           # 1 = guarda a destra, -1 = a sinistra
 var _vel_y := 0.0
 var _on_ground := true
@@ -39,10 +44,16 @@ func _ready() -> void:
 	# giocatore con get_tree().get_first_node_in_group("player").
 	add_to_group("player")
 	hp = max_hp
+	reserve = max_reserve
 
 
 func is_dead() -> bool:
 	return hp <= 0
+
+
+# Aggiunge cartucce di scorta (dalla cascina o portate dal cane).
+func add_ammo(amount: int) -> void:
+	reserve = min(max_reserve, reserve + amount)
 
 
 func is_reloading() -> bool:
@@ -94,9 +105,19 @@ func _physics_process(delta: float) -> void:
 	if _reload_left > 0:
 		_reload_left -= delta
 		if _reload_left <= 0:
-			shells = 2
-	elif Input.is_action_just_pressed("ricarica") and shells < 2:
+			# Ricarica solo quello che c'è nella scorta.
+			var loaded: int = min(2 - shells, reserve)
+			shells += loaded
+			reserve -= loaded
+	elif Input.is_action_just_pressed("ricarica") and shells < 2 and reserve > 0:
 		_reload_left = reload_time
+
+	# Vicino alla cascina si recuperano cartucce, una alla volta.
+	_refill_cd -= delta
+	if position.x < GameState.GATE_X + 70 and reserve < max_reserve and _refill_cd <= 0:
+		_refill_cd = refill_interval
+		add_ammo(1)
+		GameState.spawn_text(center() + Vector2(0, -40), "+1 cartuccia", Color("ffdd66"))
 
 	if Input.is_action_just_pressed("spara"):
 		_shoot()
@@ -120,7 +141,10 @@ func _shoot() -> void:
 	shells -= 1
 	_flash_time = 0.08
 	var origin := center()
-	# Colpisce tutti i robot dentro un "cono" davanti alla canna.
+	# I pallini si fermano sul PRIMO robot che incontrano: cerchiamo il più
+	# vicino dentro il "cono" davanti alla canna.
+	var best = null
+	var best_dist := INF
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		var to_enemy: Vector2 = enemy.center() - origin
 		var dist := to_enemy.length()
@@ -130,10 +154,14 @@ func _shoot() -> void:
 		var extra := rad_to_deg(atan2(enemy.size.y * 0.5, max(dist, 1.0)))
 		if abs(rad_to_deg(_aim.angle_to(to_enemy))) > shotgun_spread_deg + extra:
 			continue
-		# Da lontano la doppietta fa meno danni.
-		var falloff := 1.0 - (dist / shotgun_range) * 0.5
-		enemy.take_damage(shotgun_damage * falloff)
-	if shells == 0:
+		if dist < best_dist:
+			best = enemy
+			best_dist = dist
+	if best != null:
+		# Da lontano la doppietta fa molti meno danni: bisogna avvicinarsi.
+		var falloff := 1.0 - (best_dist / shotgun_range) * 0.8
+		best.take_damage(shotgun_damage * falloff)
+	if shells == 0 and reserve > 0:
 		_reload_left = reload_time
 
 
@@ -146,7 +174,7 @@ func _fork() -> void:
 		var dx: float = (enemy.position.x - position.x) * facing
 		if dx > -10 and dx < fork_range + enemy.size.x * 0.5:
 			enemy.take_damage(fork_damage)
-			enemy.knockback(40.0)
+			enemy.knockback(fork_knockback)
 
 
 # Ripara la difesa più vicina spendendo rottami.

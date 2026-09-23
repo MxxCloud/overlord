@@ -5,7 +5,7 @@ extends "res://scripts/enemies/enemy.gd"
 
 func _init() -> void:
 	kind = "segugio"
-	max_hp = 4.0
+	max_hp = 7.0
 	speed = 110.0
 	jumps_pits = true
 	dps = 3.0

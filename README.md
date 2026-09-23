@@ -24,10 +24,11 @@ La grafica è fatta di rettangoli: la pixel art arriverà dopo. Qui conta solo *
 |---|---|
 | **A / D** (o frecce) | Muoversi |
 | **W / Spazio** | Saltare (anche sopra i robot) |
-| **Clic sinistro** | Sparare con la doppietta verso il mouse (2 colpi, poi ricarica) |
+| **Clic sinistro** | Sparare con la doppietta verso il mouse (2 colpi, poi ricarica). Colpisce solo il primo robot e da lontano fa pochi danni |
 | **R** | Ricaricare |
-| **F** | Colpo di forcone (corpo a corpo, respinge il robot) |
-| **Clic destro su un robot** | Il cane corre a mordergli i cavi e lo stordisce |
+| **F** | Colpo di forcone: fa pochi danni ma respinge il robot e lo fa barcollare |
+| **Clic destro su un robot** | Il cane corre a mordergli i cavi e lo stordisce: un robot stordito subisce **danni doppi** |
+| **Clic destro sulla cascina** | Il cane corre a prendere 4 cartucce e te le porta |
 | **Clic destro su un punto vuoto** | Il cane corre lì e raccoglie i rottami |
 | **Q** (vicino a una difesa) | Ripararla spendendo 5 rottami |
 | **Invio** | Ricominciare a fine partita |
@@ -35,6 +36,8 @@ La grafica è fatta di rettangoli: la pixel art arriverà dopo. Qui conta solo *
 ## Regole della notte
 
 - I robot arrivano da destra in **3 onde** e cercano di raggiungere il **cancello** del villaggio, accanto alla cascina.
+- Le **cartucce sono limitate** (12 di scorta). Si recuperano stando vicino alla cascina, oppure mandando il cane a prenderle.
+- I **droni sparano**: i loro colpi sono lenti e si schivano muovendosi o saltando.
 - Ogni robot che passa il cancello fa calare il **Morale del villaggio**. Se arriva a zero, hai perso. Hai perso anche se il protagonista muore.
 - **Difese:**
   - **Spaventapasseri:** i robot, anche i droni, lo scambiano per un umano e si fermano ad attaccarlo.

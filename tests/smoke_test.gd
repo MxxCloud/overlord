@@ -23,6 +23,9 @@ func _physics_process(_delta: float) -> bool:
 		main.player._aim = (target.center() - main.player.center()).normalized()
 		main.player._shoot()
 		main.dog.command(target.center())
+	# Ogni tanto manda il cane a prendere cartucce alla cascina.
+	if _frames % 300 == 0:
+		main.dog.command(Vector2(60, 580))
 	if _frames % 50 == 0:
 		main.player._fork()
 		main.player._repair()

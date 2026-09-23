@@ -40,7 +40,7 @@ func _ready() -> void:
 
 	var help := GameState.make_label(
 		"A/D muovi · W/Spazio salta · Clic sx spara · R ricarica · F forcone · " +
-		"Clic dx ordine al cane (su un robot = morso) · Q ripara (5 rottami)", 13)
+		"Clic dx: cane (robot = morso, cascina = cartucce) · Q ripara (5 rottami)", 13)
 	help.position = Vector2(16, 692)
 	add_child(help)
 
@@ -74,7 +74,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_morale_bar.value = GameState.morale
 
-	var ammo := "ricarica..." if player.is_reloading() else "%d/2" % player.shells
+	var ammo := ("ricarica..." if player.is_reloading() else "%d/2" % player.shells) + " (+%d)" % player.reserve
 	var dog_state := "FERITO" if dog.is_injured() else ("pronto" if dog.cooldown <= 0 else "%.0fs" % ceil(dog.cooldown))
 	_stats.text = "Vita: %d/%d   Cartucce: %s   Rottami: %d\nCane: %s   Onda: %d/%d" % [
 		ceil(player.hp), player.max_hp, ammo, GameState.scrap,

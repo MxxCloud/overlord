@@ -67,11 +67,19 @@ func stun(seconds: float) -> void:
 func knockback(pixels: float) -> void:
 	if not trapped:
 		position.x += pixels
+		stun(0.4)  # barcolla un attimo dopo il colpo
+
+
+func is_stunned() -> bool:
+	return _stun_time > 0
 
 
 func take_damage(amount: float) -> void:
 	if _dying:
 		return
+	# Un robot stordito dal cane ha i cavi scoperti: danni doppi.
+	if is_stunned():
+		amount *= 2.0
 	hp -= amount
 	_hit_flash = 0.08
 	if hp <= 0:

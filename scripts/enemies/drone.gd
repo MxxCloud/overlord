@@ -2,7 +2,12 @@
 # ma lo spaventapasseri lo confonde. Chiede feedback mentre ti invade.
 extends "res://scripts/enemies/enemy.gd"
 
+const BulletScript := preload("res://scripts/enemies/bullet.gd")
+
+var fire_interval := 2.8
+var fire_range := 450.0
 var _time := 0.0
+var _fire_cd := 0.0
 
 
 func _init() -> void:
@@ -25,12 +30,24 @@ func _init() -> void:
 func _ready() -> void:
 	super._ready()
 	_time = randf() * TAU
+	_fire_cd = randf_range(1.0, fire_interval)
 
 
 # Il drone vola in alto e ondeggia.
 func _update_extra(delta: float) -> void:
 	_time += delta * 3.0
 	position.y = GameState.GROUND_Y - 170 + sin(_time) * 8
+	# Spara al protagonista quando è a portata (anche mentre è fermo a
+	# confondersi con lo spaventapasseri). Costringe a muoversi.
+	_fire_cd -= delta
+	if _fire_cd <= 0 and not is_stunned():
+		var player = get_tree().get_first_node_in_group("player")
+		if player != null and abs(player.position.x - position.x) < fire_range:
+			_fire_cd = fire_interval
+			var bullet = BulletScript.new()
+			bullet.position = center()
+			bullet.velocity = (player.center() - center()).normalized() * 260.0
+			get_parent().add_child(bullet)
 
 
 func _draw() -> void:

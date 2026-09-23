@@ -6,7 +6,7 @@ extends "res://scripts/enemies/enemy.gd"
 # per impostare i valori che lo script base userà.
 func _init() -> void:
 	kind = "servitore"
-	max_hp = 3.0
+	max_hp = 4.0
 	speed = 38.0
 	dps = 2.0
 	morale_damage = 10
