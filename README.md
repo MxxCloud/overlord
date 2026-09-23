@@ -18,46 +18,57 @@ La grafica è fatta di rettangoli: la pixel art arriverà dopo. Qui conta solo *
 
 > La prima volta Godot impiega qualche secondo a "importare" il progetto e crea una cartella `.godot/`. È normale: è una cache e non va salvata nel repository.
 
+## L'idea di questa versione
+
+Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). La notte si vince **preparandosi**:
+- decidi dove costruire le difese e spendi i rottami;
+- assegni gli abitanti alle postazioni;
+- ripari quello che i robot rompono;
+- usi il cane e le poche cartucce nei momenti critici.
+
 ## Comandi
 
 | Tasto | Azione |
 |---|---|
-| **A / D** (o frecce) | Muoversi |
-| **W / Spazio** | Saltare (anche sopra i robot) |
-| **Clic sinistro** | Sparare con la doppietta verso il mouse (2 colpi, poi ricarica). Colpisce solo il primo robot e da lontano fa pochi danni |
-| **R** | Ricaricare |
-| **F** | Colpo di forcone: fa pochi danni ma respinge il robot e lo fa barcollare |
-| **Clic destro su un robot** | Il cane corre a mordergli i cavi e lo stordisce: un robot stordito subisce **danni doppi** |
-| **Clic destro sulla cascina** | Il cane corre a prendere 4 cartucce e te le porta |
+| **A / D** (o frecce) | Muoversi lungo la collina |
+| **1 / 2 / 3 / 4** (davanti a un cantiere vuoto, con la bandierina) | Costruire: Recinto (8 rottami), Fossa (6), Spaventapasseri (5), Postazione (10) |
+| **E** (davanti a una difesa) | Ripararla (3 rottami), oppure assegnare un abitante a una postazione vuota |
+| **Clic sinistro** | Sparare con la doppietta. **Solo 6 cartucce per tutta la notte**: colpisce il primo robot e da vicino fa molto male |
+| **Clic destro su un robot** | Il cane gli morde i cavi e lo stordisce: un robot stordito subisce **danni doppi** |
 | **Clic destro su un punto vuoto** | Il cane corre lì e raccoglie i rottami |
-| **Q** (vicino a una difesa) | Ripararla spendendo 5 rottami |
 | **Invio** | Ricominciare a fine partita |
 
 ## Regole della notte
 
-- I robot arrivano da destra in **3 onde** e cercano di raggiungere il **cancello** del villaggio, accanto alla cascina.
-- Le **cartucce sono limitate** (12 di scorta). Si recuperano stando vicino alla cascina, oppure mandando il cane a prenderle.
-- I **droni sparano**: i loro colpi sono lenti e si schivano muovendosi o saltando.
-- Ogni robot che passa il cancello fa calare il **Morale del villaggio**. Se arriva a zero, hai perso. Hai perso anche se il protagonista muore.
+- Parti con **30 rottami** e **4 cantieri vuoti**. Hai 35 secondi prima della prima onda: scegli cosa costruire.
+- **Costruire richiede tempo.** Un abitante libero arriva dal villaggio e lavora al cantiere. Se un robot lo raggiunge mentre lavora, resta ferito per il resto della notte.
+- **Abitanti** (Nonna Edda, Gus, Padre Tobia): costruiscono e riparano, oppure presidiano una **postazione** e da lì lanciano molotov sui robot di terra. Se la postazione crolla, l'abitante resta ferito.
+- **Rottami:** i robot distrutti li lasciano a terra. Li raccogli passandoci sopra, oppure mandando il cane.
+- Tra un'onda e l'altra hai 25 secondi. Il cane **fiuta** in anticipo cosa sta arrivando (es. "7 servitori, 3 droni").
+- Ogni robot che passa il **cancello** fa calare il **Morale del villaggio**. Hai perso se arriva a zero, oppure se il protagonista muore.
 - **Difese:**
-  - **Spaventapasseri:** i robot, anche i droni, lo scambiano per un umano e si fermano ad attaccarlo.
-  - **Fossa:** i robot leggeri ci cadono e restano intrappolati. Ne contiene 3.
+  - **Postazione:** senza un abitante non fa nulla. Presidiata, lancia molotov. I robot di terra la attaccano.
   - **Recinto:** blocca i robot di terra finché non lo abbattono.
+  - **Fossa:** i robot leggeri ci cadono e restano intrappolati. Ne contiene 3; ripararla la svuota.
+  - **Spaventapasseri:** tutti i robot, anche i droni, si fermano ad attaccarlo.
 - **Nemici:**
   - **Servitore Domestico:** lento, arriva in gruppo.
-  - **Drone Sondaggio:** vola e ignora recinti e fosse.
-  - **Segugio:** veloce, salta le fosse. Il morso del cane gli fa danno doppio.
-- **Il cane** (Bullone) ha un'attesa di qualche secondo tra un ordine e l'altro. Con il **Fiuto** abbaia e fa comparire un **▶ !** rosso sul bordo destro quando sente robot in arrivo. Se lo ferisci troppo, per questa notte si ritira (non muore mai).
+  - **Drone Sondaggio:** vola, e le molotov non lo raggiungono. Spara colpi lenti che si schivano camminando. Serve la doppietta.
+  - **Segugio:** più veloce, salta le fosse. Il morso del cane gli fa danno doppio.
+- **Il cane** (Bullone) ha un'attesa di qualche secondo tra un ordine e l'altro. Se lo ferisci troppo, per questa notte si ritira (non muore mai).
 
 ## Come modificare il gioco (anche senza saper programmare)
 
 Tutti i numeri importanti sono all'inizio dei file, con commenti in italiano:
 
 - **Difficoltà delle onde:** `scripts/wave_manager.gd`, array `waves`. Cambia `"quanti"` e `"intervallo"`.
-- **Protagonista** (velocità, danni, ricarica): variabili `@export` in `scripts/player.gd`.
+- **Protagonista** (velocità, cartucce, danni): variabili `@export` in `scripts/player.gd`.
+- **Rottami iniziali:** `start_scrap` in `scripts/game_state.gd`.
+- **Costi e tempi di costruzione:** `TYPES` in `scripts/build_slot.gd`.
+- **Abitanti** (nomi, molotov): `VILLAGERS` in `scripts/main.gd` e `scripts/villager.gd`.
 - **Cane** (velocità, stordimento, attesa tra ordini): `scripts/dog.gd`.
 - **Robot** (vita, velocità, battute): `scripts/enemies/servitore.gd`, `drone.gd`, `segugio.gd`.
-- **Difese** (resistenza) e loro posizione: `scripts/defenses/*.gd` e `_ready()` in `scripts/main.gd`.
+- **Difese** (resistenza): `scripts/defenses/*.gd`. Posizione dei cantieri: `SLOT_POSITIONS` in `scripts/main.gd`.
 
 Dopo ogni modifica salva il file (Ctrl+S) e premi F5 per riprovare.
 
@@ -74,6 +85,9 @@ scripts/
   wave_manager.gd        onde di robot
   hud.gd                 interfaccia e report finale
   scrap.gd               rottami a terra
+  build_slot.gd          cantieri: costruzione e riparazione
+  villager.gd            abitanti (costruiscono, presidiano le postazioni)
+  molotov.gd             molotov lanciate dalle postazioni
   enemies/               robot (enemy.gd è la base comune)
   defenses/              difese (defense.gd è la base comune)
 tests/smoke_test.gd      test automatico: gioca una partita accelerata

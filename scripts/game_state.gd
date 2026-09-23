@@ -18,6 +18,7 @@ const GATE_X := 110.0     # posizione del cancello del villaggio (a sinistra)
 const SCREEN_W := 1280.0  # larghezza dello schermo
 
 @export var max_morale := 100
+@export var start_scrap := 30       # rottami a inizio notte, per le prime difese
 
 var morale := 100
 var scrap := 0            # rottami raccolti: servono a riparare le difese
@@ -32,7 +33,7 @@ func _ready() -> void:
 # Rimette tutto a zero. La chiama main.gd all'inizio di ogni partita.
 func reset() -> void:
 	morale = max_morale
-	scrap = 0
+	scrap = start_scrap
 	finished = false
 	kills = 0
 
@@ -98,10 +99,11 @@ func spawn_text(pos: Vector2, text: String, color: Color = Color.WHITE) -> void:
 func _setup_input() -> void:
 	_add_keys("sinistra", [KEY_A, KEY_LEFT])
 	_add_keys("destra", [KEY_D, KEY_RIGHT])
-	_add_keys("salta", [KEY_W, KEY_SPACE, KEY_UP])
-	_add_keys("forcone", [KEY_F])
-	_add_keys("ricarica", [KEY_R])
-	_add_keys("ripara", [KEY_Q])
+	_add_keys("interagisci", [KEY_E])
+	_add_keys("costruisci_1", [KEY_1])
+	_add_keys("costruisci_2", [KEY_2])
+	_add_keys("costruisci_3", [KEY_3])
+	_add_keys("costruisci_4", [KEY_4])
 	_add_keys("riavvia", [KEY_ENTER])
 	_add_mouse("spara", MOUSE_BUTTON_LEFT)
 	_add_mouse("cane", MOUSE_BUTTON_RIGHT)

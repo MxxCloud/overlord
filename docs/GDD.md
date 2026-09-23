@@ -146,9 +146,12 @@ La campagna è scandita in **giorni** (target: circa 30 giorni in gioco). Il con
 - **Vista:** laterale 2D con leggera profondità (2–3 corsie di profondità sul pendio), come nell'immagine di riferimento. La collina scende da sinistra (cascina, villaggio) verso destra (valle, città).
 - **Durata:** 3–6 minuti per notte.
 - **Obiettivo:** impedire ai robot di raggiungere il **cancello del villaggio**. Superata la cascina, i robot danneggiano edifici e abitanti.
-- **Controllo del protagonista:** movimento libero lungo la collina e attacco (mira con il mouse, oppure mira assistita su gamepad).
-  - Armi: doppietta (poche munizioni, molti danni), forcone (corpo a corpo, contro il mirino ottico dei robot), molotov (danno ad area), chiave inglese (ripara le trappole in tempo reale).
-- **Trappole e difese** si piazzano di giorno e si attivano di notte (vedi §4.4).
+- **Il protagonista è un comandante, non un eroe d'azione** (decisione presa dopo i primi playtest, ispirata a *Kingdom*). Il ritmo è compassato: la notte si vince preparandosi, non con i riflessi.
+  - **Compito principale:** camminare lungo la collina, costruire e riparare le difese nei cantieri spendendo rottami, assegnare gli abitanti alle postazioni, raccogliere rottami.
+  - **Doppietta come ultima risorsa:** poche cartucce per tutta la notte (circa 6). Colpisce un solo robot ed è forte solo a distanza ravvicinata. Serve soprattutto contro i droni, che le molotov non raggiungono.
+  - **Chi combatte sono gli abitanti:** presidiano le postazioni e lanciano molotov. Costruire e riparare richiede tempo e un abitante libero, che durante il lavoro è esposto ai robot.
+  - **Tempo tra le onde:** è la fase più importante. Il Fiuto del cane annuncia cosa sta arrivando.
+- **Trappole e difese** si costruiscono in **cantieri** fissi lungo la collina: di giorno con calma, di notte nelle pause tra le onde (vedi §4.4).
 - **Comandi al cane:** ordini contestuali con fischi (vedi §4.3).
 - **Condizione di sconfitta notturna:** la barra del **Morale del Villaggio** arriva a zero, oppure il protagonista cade. In quel caso si passa a un'alba con gravi conseguenze, non al game over, salvo nell'Atto 3.
 

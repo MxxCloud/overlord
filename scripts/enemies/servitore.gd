@@ -6,10 +6,11 @@ extends "res://scripts/enemies/enemy.gd"
 # per impostare i valori che lo script base userà.
 func _init() -> void:
 	kind = "servitore"
-	max_hp = 4.0
-	speed = 38.0
+	max_hp = 5.0
+	speed = 24.0
 	dps = 2.0
 	morale_damage = 10
+	scrap_drop = 2
 	size = Vector2(26, 42)
 	color = Color("7a7a88")
 	spawn_lines = [

@@ -11,9 +11,17 @@ const PlayerScript := preload("res://scripts/player.gd")
 const DogScript := preload("res://scripts/dog.gd")
 const WaveManagerScript := preload("res://scripts/wave_manager.gd")
 const HudScript := preload("res://scripts/hud.gd")
-const RecintoScript := preload("res://scripts/defenses/recinto.gd")
-const FossaScript := preload("res://scripts/defenses/fossa.gd")
-const SpaventapasseriScript := preload("res://scripts/defenses/spaventapasseri.gd")
+const SlotScript := preload("res://scripts/build_slot.gd")
+const VillagerScript := preload("res://scripts/villager.gd")
+
+# Posizioni dei cantieri lungo la collina (da destra verso il villaggio).
+const SLOT_POSITIONS := [1060.0, 880.0, 700.0, 520.0]
+# Abitanti disponibili all'inizio della notte: nome e colore dei vestiti.
+const VILLAGERS := [
+	["Nonna Edda", Color("9a5a8a")],
+	["Gus", Color("5a6a7a")],
+	["Padre Tobia", Color("2a2a2a")],
+]
 
 var player
 var dog
@@ -23,10 +31,20 @@ var dog
 func _ready() -> void:
 	GameState.reset()
 
-	# Difese pre-piazzate: da destra (dove arrivano i robot) verso il cancello.
-	_add_defense(SpaventapasseriScript, 1060)
-	_add_defense(FossaScript, 850)
-	_add_defense(RecintoScript, 620)
+	# Cantieri vuoti: sarà il giocatore a decidere cosa costruire.
+	for x in SLOT_POSITIONS:
+		var slot = SlotScript.new()
+		slot.position = Vector2(x, GameState.GROUND_Y)
+		slot.main = self
+		add_child(slot)
+
+	for i in VILLAGERS.size():
+		var villager = VillagerScript.new()
+		villager.nome = VILLAGERS[i][0]
+		villager.color = VILLAGERS[i][1]
+		villager.home_x = 40.0 + i * 25.0
+		villager.position = Vector2(villager.home_x, GameState.GROUND_Y)
+		add_child(villager)
 
 	player = PlayerScript.new()
 	player.position = Vector2(320, GameState.GROUND_Y)
@@ -49,10 +67,13 @@ func _ready() -> void:
 	add_child(hud)
 
 
-func _add_defense(script: Script, x: float) -> void:
-	var defense = script.new()
-	defense.position = Vector2(x, GameState.GROUND_Y)
-	add_child(defense)
+# Restituisce l'abitante libero più vicino al punto x (o null se non ce ne sono).
+func find_free_villager(x: float):
+	var best = null
+	for villager in get_tree().get_nodes_in_group("villagers"):
+		if villager.is_free() and (best == null or abs(villager.position.x - x) < abs(best.position.x - x)):
+			best = villager
+	return best
 
 
 # _unhandled_input riceve i tasti non già usati da altri nodi.

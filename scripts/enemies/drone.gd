@@ -4,7 +4,7 @@ extends "res://scripts/enemies/enemy.gd"
 
 const BulletScript := preload("res://scripts/enemies/bullet.gd")
 
-var fire_interval := 2.8
+var fire_interval := 4.5
 var fire_range := 450.0
 var _time := 0.0
 var _fire_cd := 0.0
@@ -12,8 +12,8 @@ var _fire_cd := 0.0
 
 func _init() -> void:
 	kind = "drone"
-	max_hp = 1.0
-	speed = 70.0
+	max_hp = 2.0
+	speed = 40.0
 	flying = true
 	dps = 3.0
 	morale_damage = 6

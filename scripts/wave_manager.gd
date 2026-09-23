@@ -15,35 +15,55 @@ const ENEMY_SCRIPTS := {
 	"segugio": preload("res://scripts/enemies/segugio.gd"),
 }
 
-@export var pause_between_waves := 6.0
+@export var first_wave_delay := 35.0     # tempo per costruire le prime difese
+@export var pause_between_waves := 25.0  # tempo per riparare e prepararsi
+
+const NAMES := {"servitore": ["servitore", "servitori"], "drone": ["drone", "droni"],
+	"segugio": ["segugio", "segugi"]}
 
 var waves := [
-	# Onda 1: "Gentile cliente". Solo servitori, per imparare i comandi.
+	# Onda 1: "Gentile cliente". Solo servitori, per imparare a costruire.
 	[
-		{"tipo": "servitore", "quanti": 6, "intervallo": 2.5},
+		{"tipo": "servitore", "quanti": 5, "intervallo": 4.0},
 	],
-	# Onda 2: arrivano i droni.
+	# Onda 2: arrivano i droni (le molotov non li raggiungono: serve la doppietta).
 	[
-		{"tipo": "servitore", "quanti": 8, "intervallo": 1.8},
-		{"tipo": "drone", "quanti": 4, "intervallo": 3.0, "ritardo": 4.0},
+		{"tipo": "servitore", "quanti": 7, "intervallo": 3.5},
+		{"tipo": "drone", "quanti": 3, "intervallo": 5.0, "ritardo": 6.0},
 	],
-	# Onda 3: i segugi. Qui il cane serve davvero.
+	# Onda 3: i segugi saltano le fosse. Qui il cane serve davvero.
 	[
-		{"tipo": "servitore", "quanti": 10, "intervallo": 1.5},
-		{"tipo": "segugio", "quanti": 4, "intervallo": 4.0, "ritardo": 3.0},
-		{"tipo": "drone", "quanti": 6, "intervallo": 2.5, "ritardo": 6.0},
+		{"tipo": "servitore", "quanti": 8, "intervallo": 3.0},
+		{"tipo": "segugio", "quanti": 3, "intervallo": 6.0, "ritardo": 5.0},
+		{"tipo": "drone", "quanti": 3, "intervallo": 6.0, "ritardo": 10.0},
 	],
 ]
 
 var current := -1                # indice dell'onda attuale (-1 = non ancora iniziata)
-var pause_left := 4.0            # secondi prima della prossima onda
+var pause_left := 0.0            # secondi prima della prossima onda
 var spawning := false            # true mentre un'onda è in corso
 var _queue: Array = []           # robot ancora da far entrare: {tipo, t}
 var _time := 0.0
 
 
+func _ready() -> void:
+	pause_left = first_wave_delay
+
+
 func total_waves() -> int:
 	return waves.size()
+
+
+# Descrive la prossima onda, es. "7 servitori, 3 droni". È il Fiuto del cane:
+# si sa in anticipo cosa sta arrivando e ci si può preparare.
+func describe_next_wave() -> String:
+	if current + 1 >= waves.size():
+		return ""
+	var parts := []
+	for group in waves[current + 1]:
+		var n: int = group["quanti"]
+		parts.append("%d %s" % [n, NAMES[group["tipo"]][0 if n == 1 else 1]])
+	return ", ".join(parts)
 
 
 func _physics_process(delta: float) -> void:

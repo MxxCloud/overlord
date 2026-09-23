@@ -1,5 +1,5 @@
 # Proiettile sparato dai droni. È lento apposta: si può schivare muovendosi
-# o saltando.
+# lungo la collina.
 extends Node2D
 
 var velocity := Vector2.ZERO

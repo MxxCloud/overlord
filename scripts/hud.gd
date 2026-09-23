@@ -39,14 +39,14 @@ func _ready() -> void:
 	add_child(_stats)
 
 	var help := GameState.make_label(
-		"A/D muovi · W/Spazio salta · Clic sx spara · R ricarica · F forcone · " +
-		"Clic dx: cane (robot = morso, cascina = cartucce) · Q ripara (5 rottami)", 13)
+		"A/D muovi · Ai cantieri: 1-4 costruisci, E ripara/assegna abitante · " +
+		"Clic sx spara (poche cartucce!) · Clic dx cane (su un robot = morso, altrove = raccoglie rottami)", 13)
 	help.position = Vector2(16, 692)
 	add_child(help)
 
-	_banner = GameState.make_label("", 32)
-	_banner.size = Vector2(1280, 50)
-	_banner.position = Vector2(0, 200)
+	_banner = GameState.make_label("", 26)
+	_banner.size = Vector2(1280, 80)
+	_banner.position = Vector2(0, 150)
 	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_banner)
 
@@ -74,16 +74,22 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_morale_bar.value = GameState.morale
 
-	var ammo := ("ricarica..." if player.is_reloading() else "%d/2" % player.shells) + " (+%d)" % player.reserve
+	var free := 0
+	var total := 0
+	for villager in get_tree().get_nodes_in_group("villagers"):
+		total += 1
+		if villager.is_free():
+			free += 1
 	var dog_state := "FERITO" if dog.is_injured() else ("pronto" if dog.cooldown <= 0 else "%.0fs" % ceil(dog.cooldown))
-	_stats.text = "Vita: %d/%d   Cartucce: %s   Rottami: %d\nCane: %s   Onda: %d/%d" % [
-		ceil(player.hp), player.max_hp, ammo, GameState.scrap,
-		dog_state, max(waves.current + 1, 1), waves.total_waves()]
+	_stats.text = "Rottami: %d   Abitanti liberi: %d/%d   Cartucce: %d/%d\nVita: %d/%d   Cane: %s   Onda: %d/%d" % [
+		GameState.scrap, free, total, player.shells, player.max_shells,
+		ceil(player.hp), player.max_hp, dog_state, max(waves.current + 1, 1), waves.total_waves()]
 
 	_sniff.visible = dog.incoming > 0 and not dog.is_injured() and not GameState.finished
 
 	if not waves.spawning and not GameState.finished and waves.current < waves.total_waves() - 1:
-		_banner.text = "Onda %d tra %d..." % [waves.current + 2, ceil(max(waves.pause_left, 0.0))]
+		_banner.text = "Onda %d tra %d s\nIl cane fiuta: %s" % [
+			waves.current + 2, ceil(max(waves.pause_left, 0.0)), waves.describe_next_wave()]
 		_banner.modulate.a = 1.0
 
 

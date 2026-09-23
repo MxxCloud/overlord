@@ -8,7 +8,6 @@
 # - Vai!: clic destro su un punto vuoto. Corre lì e raccoglie i rottami.
 # - Morso ai cavi: clic destro su un robot a terra. Lo raggiunge e lo stordisce
 #   (un robot stordito subisce danni doppi).
-# - Riporto: clic destro sulla cascina. Corre a prendere cartucce e te le porta.
 extends Node2D
 
 @export var speed := 320.0
@@ -17,7 +16,6 @@ extends Node2D
 @export var bite_damage := 1.0
 @export var command_cooldown := 4.0    # attesa tra un ordine e l'altro
 @export var collect_radius := 70.0
-@export var ammo_fetched := 4          # cartucce portate con il Riporto
 
 var player                             # riferimento al protagonista (lo imposta main.gd)
 var hp := 4.0
@@ -29,7 +27,6 @@ var _target_x := 0.0
 var _target_enemy = null
 var _bark_label: Label
 var _bark_time := 0.0
-var _carrying := false                 # sta portando le cartucce?
 
 
 func _ready() -> void:
@@ -67,13 +64,6 @@ func command(pos: Vector2) -> void:
 	if is_injured() or cooldown > 0:
 		return
 	_target_enemy = null
-	# Clic sulla cascina: va a prendere le cartucce.
-	if pos.x < GameState.GATE_X + 20:
-		state = "riporta"
-		_carrying = false
-		cooldown = command_cooldown
-		bark("WOOF!")
-		return
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not enemy.flying and enemy.center().distance_to(pos) < 50:
 			_target_enemy = enemy
@@ -116,15 +106,6 @@ func _physics_process(delta: float) -> void:
 			elif _move_to(_target_enemy.position.x, delta, speed) or \
 					abs(_target_enemy.position.x - position.x) < _target_enemy.size.x * 0.5 + 12:
 				_bite(_target_enemy)
-				state = "segui"
-		"riporta":
-			if not _carrying:
-				if _move_to(GameState.GATE_X - 50, delta, speed):
-					_carrying = true
-			elif _move_to(player.position.x, delta, speed):
-				player.add_ammo(ammo_fetched)
-				GameState.spawn_text(position + Vector2(0, -40), "+%d cartucce" % ammo_fetched, Color("ffdd66"))
-				_carrying = false
 				state = "segui"
 		"ferito":
 			_move_to(GameState.GATE_X - 30, delta, speed * 0.4)
@@ -182,7 +163,5 @@ func _draw() -> void:
 	draw_rect(Rect2(f * 16 - 3, -22, 7, 5), Color("eeeeee"))        # muso
 	draw_rect(Rect2(f * 12 - 6, -32, 4, 5), body)                   # orecchio
 	draw_line(Vector2(-f * 14, -18), Vector2(-f * 22, -26), body, 3) # coda
-	if _carrying:
-		draw_rect(Rect2(f * 18 - 4, -20, 8, 5), Color("c0392b"))   # scatola di cartucce in bocca
 	for lx in [-11, -5, 5, 11]:
 		draw_rect(Rect2(lx - 1.5, -8, 3, 8), Color("eeeeee"))       # zampe

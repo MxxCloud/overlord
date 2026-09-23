@@ -127,14 +127,20 @@ func _physics_process(delta: float) -> void:
 	if not flying and dog != null and not dog.is_injured() and abs(dog.position.x - position.x) < size.x * 0.5 + 12:
 		dog.take_damage(dps * 0.5 * delta)
 
-	# 3) Tocco il protagonista (e non sta saltando sopra di me)? Mi fermo e attacco.
+	# 3) Tocco un abitante che lavora allo scoperto? Lo ferisco di passaggio.
+	if not flying:
+		for villager in get_tree().get_nodes_in_group("villagers"):
+			if villager.is_exposed() and abs(villager.position.x - position.x) < size.x * 0.5 + 10:
+				villager.take_damage(dps * delta)
+
+	# 4) Tocco il protagonista? Mi fermo e attacco.
 	var player = get_tree().get_first_node_in_group("player")
 	if not flying and player != null and abs(player.position.x - position.x) < size.x * 0.5 + 12 \
 			and player.position.y > GameState.GROUND_Y - size.y:
 		player.take_damage(dps * delta)
 		return
 
-	# 4) Altrimenti avanzo verso il cancello.
+	# 5) Altrimenti avanzo verso il cancello.
 	position.x -= speed * delta
 
 	# Sono finito in una fossa?
