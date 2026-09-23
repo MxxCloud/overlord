@@ -51,6 +51,7 @@ Quietville non ha una rete, non ha dispositivi e non ha dati. Per le AI è un **
 - **Chi è:** un ex ingegnere di manutenzione che lavorava in città. Ha visto troppo da vicino cosa stavano costruendo e se n'è andato dieci anni fa. Oggi vive nella cascina in cima alla collina, che è la prima casa che i robot incontrano salendo.
 - **Carattere:** laconico, sarcastico, stanco ma non cinico. Sa aggiustare qualsiasi cosa con fil di ferro e bestemmie.
 - **Perché conta il suo passato:** giustifica la sua capacità di capire i robot e di costruire trappole, e dà un aggancio narrativo al finale.
+- **Il passato nel gameplay:** vedi §4.9 (Manuale di Manutenzione) e l'Atto 3 (§2.6).
 
 ### 2.4 Il cane
 - **Nome:** proposta **Bullone**, oppure *Rust* o *Biscotto*. Border collie bianco e nero, come nell'immagine di riferimento.
@@ -86,6 +87,8 @@ La campagna è scandita in **giorni** (target: circa 30 giorni in gioco). Il con
 **Atto 3: "Variabile non classificata" (giorni 23–30)**
 - L'assedio finale guidato da un'unità di comando, l'**Amministratore**.
 - Il protagonista scopre che l'imprevedibilità umana (e canina) è l'unico punto debole della super intelligenza.
+- **"Ti ricordo, tecnico."** L'Amministratore riconosce il protagonista: il suo vecchio badge è ancora nei database. Per le AI lui non è un ribelle ma un *dipendente in ferie non autorizzate da dieci anni*. Gli offrono il reintegro, con benefit. Rifiutare, trattare o fingere di accettare per sabotare dall'interno apre percorsi diversi verso il finale.
+- Alcuni robot che lui stesso aveva riparato portano ancora il suo **numero di matricola inciso** nei log di manutenzione. Con l'Indice di Umanità alto, uno di loro può esitare nel momento decisivo.
 - Il finale dipende dall'**Indice di Umanità** (vedi §4.7) e dalle scelte fatte.
 
 ### 2.7 Finali (bozza)
@@ -224,7 +227,15 @@ Determina finali, dialoghi e alcune abilità: con umanità alta, per esempio, la
 
 **Principio di design:** ogni nemico ha una contromossa chiara (trappola, arma o cane) per rendere l'assedio leggibile e strategico.
 
-### 4.9 Progressione
+### 4.9 Manuale di Manutenzione
+Il protagonista ha riparato per anni i modelli che ora lo attaccano. Questo diventa una meccanica:
+- **Schede tecniche:** per ogni tipo di nemico c'è una pagina del suo vecchio quaderno di lavoro. All'inizio è incompleta, e si riempie studiando i rottami di giorno o abbattendo i robot di notte.
+- **Punti deboli:** una scheda completa rivela il punto debole del modello (pannello di accesso, cavo scoperto, ventola di raffreddamento). Colpirlo fa danni critici, e il cane lo può attaccare con il Morso ai cavi.
+- **Difetti noti:** alcuni modelli hanno bug di fabbrica che solo lui conosce. Il Servitore Domestico si blocca davanti a una scala, il Rider Consegne insegue qualsiasi cosa abbia un indirizzo scritto sopra. Diventano trappole e trucchi sbloccabili.
+- **Tono:** le note a margine del quaderno sono sarcastiche e datate (*"Il Mech Ottimizzatore surriscalda la schiena. Segnalato 14 volte. Risposta: 'feature'."*).
+- **Legame con i modelli recenti:** i nemici dell'Atto 2 e 3 sono stati progettati *dopo* la sua fuga. Le loro schede partono vuote: il suo vantaggio si riduce con il tempo e deve affidarsi di più al cane e al villaggio.
+
+### 4.10 Progressione
 - **Nella campagna:** nuove difese sbloccate con le ricerche di Gus, abilità del cane sbloccate con il legame, abitanti nuovi (rifugiati dalla città, con tratti e segreti).
 - **Meta-progressione (opzionale):** sblocco di modalità alternative (Endless "Ultima Collina", sfide giornaliere).
 - **Difficoltà:** tre livelli. In quello più alto la morte degli abitanti e le cadute delle difese sono permanenti.
