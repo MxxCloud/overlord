@@ -40,20 +40,21 @@ func _ready() -> void:
 	add_child(_stats)
 
 	var help := GameState.make_label(
-		"A/D muovi · Ai cantieri: 1-4 costruisci, E ripara/assegna abitante · " +
+		"WASD muovi · Ai cantieri: 1-4 costruisci, E ripara/assegna abitante · " +
 		"Clic sx spara (poche cartucce!) · Clic dx cane (su un robot = morso, altrove = raccoglie rottami)", 13)
 	help.position = Vector2(16, 692)
 	add_child(help)
 
 	_banner = GameState.make_label("", 26)
 	_banner.size = Vector2(1280, 80)
-	_banner.position = Vector2(0, 150)
+	_banner.position = Vector2(0, 8)   # in alto, sopra la città: non copre il campo
 	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_banner)
 
 	# Indicatore del Fiuto: appare sul bordo destro quando il cane sente robot.
-	_sniff = GameState.make_label("▶ ! ", 28)
-	_sniff.position = Vector2(1220, 520)
+	# Indicatore del Fiuto: appare in basso, dal lato da cui arrivano i robot.
+	_sniff = GameState.make_label("▼ !", 28)
+	_sniff.position = Vector2(1220, 640)
 	_sniff.modulate = Color("ff5555")
 	add_child(_sniff)
 
@@ -96,6 +97,7 @@ func _process(_delta: float) -> void:
 		ceil(player.hp), player.max_hp, dog_state, max(waves.current + 1, 1), waves.total_waves()]
 
 	_sniff.visible = dog.incoming > 0 and not dog.is_injured() and not GameState.finished
+	_sniff.position.x = clampf(dog.incoming_x - 20, 10, 1230)
 
 	if not waves.spawning and not GameState.finished and waves.current < waves.total_waves() - 1:
 		_banner.text = "Onda %d tra %d s\nIl cane fiuta: %s" % [

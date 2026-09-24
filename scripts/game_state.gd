@@ -13,10 +13,8 @@ signal scrap_changed(value)
 signal game_over(won)
 signal player_hurt
 
-# Costanti del livello (in pixel). Lo schermo è 1280x720.
-const GROUND_Y := 600.0   # altezza del terreno: tutti "camminano" su questa linea
-const GATE_X := 110.0     # posizione del cancello del villaggio (a sinistra)
-const SCREEN_W := 1280.0  # larghezza dello schermo
+# Lo schermo è 1280x720. Sentieri, cancello e cantieri sono in map.gd.
+const SCREEN := Vector2(1280, 720)
 
 @export var max_morale := 100
 @export var start_scrap := 30       # rottami a inizio notte, per le prime difese
@@ -28,6 +26,7 @@ var kills := 0            # robot distrutti, per il report finale
 
 # Riferimenti impostati da main.gd a ogni partita.
 var fx                    # il nodo degli effetti (fx.gd)
+var map                   # la mappa con i sentieri (map.gd)
 var camera: Camera2D      # la camera, che facciamo tremare
 
 var _shake := 0.0
@@ -135,6 +134,8 @@ func spawn_text(pos: Vector2, text: String, color: Color = Color.WHITE) -> void:
 func _setup_input() -> void:
 	_add_keys("sinistra", [KEY_A, KEY_LEFT])
 	_add_keys("destra", [KEY_D, KEY_RIGHT])
+	_add_keys("su", [KEY_W, KEY_UP])
+	_add_keys("giu", [KEY_S, KEY_DOWN])
 	_add_keys("interagisci", [KEY_E])
 	_add_keys("costruisci_1", [KEY_1])
 	_add_keys("costruisci_2", [KEY_2])

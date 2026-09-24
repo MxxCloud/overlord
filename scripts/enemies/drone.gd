@@ -15,6 +15,7 @@ func _init() -> void:
 	max_hp = 2.0
 	speed = 40.0
 	flying = true
+	fly_height = 80.0
 	dps = 3.0
 	morale_damage = 6
 	sprite_frames = ["drone_1", "drone_2"]
@@ -38,13 +39,13 @@ func _ready() -> void:
 func _update_extra(delta: float) -> void:
 	_time += delta * 3.0
 	_anim_time += delta  # le eliche girano anche quando è fermo
-	position.y = GameState.GROUND_Y - 170 + sin(_time) * 8
+	fly_height = 80.0 + sin(_time) * 6.0
 	# Spara al protagonista quando è a portata (anche mentre è fermo a
 	# confondersi con lo spaventapasseri). Costringe a muoversi.
 	_fire_cd -= delta
 	if _fire_cd <= 0 and not is_stunned():
 		var player = get_tree().get_first_node_in_group("player")
-		if player != null and abs(player.position.x - position.x) < fire_range:
+		if player != null and player.position.distance_to(position) < fire_range:
 			_fire_cd = fire_interval
 			var bullet = BulletScript.new()
 			bullet.position = center()

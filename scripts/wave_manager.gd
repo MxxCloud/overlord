@@ -44,6 +44,7 @@ var pause_left := 0.0            # secondi prima della prossima onda
 var spawning := false            # true mentre un'onda è in corso
 var _queue: Array = []           # robot ancora da far entrare: {tipo, t}
 var _time := 0.0
+var _next_path := 0
 
 
 func _ready() -> void:
@@ -104,6 +105,8 @@ func _start_next_wave() -> void:
 
 func _spawn(tipo: String) -> void:
 	var enemy = ENEMY_SCRIPTS[tipo].new()
-	# Entrano da destra, appena fuori dallo schermo.
-	enemy.position = Vector2(GameState.SCREEN_W + 60 + randf() * 80, GameState.GROUND_Y)
+	# Sbucano dal bosco in fondo a uno dei due sentieri, a turno.
+	_next_path = 1 - _next_path
+	enemy.path_id = _next_path
+	enemy.position = GameState.map.path_point(_next_path, 0.0) + Vector2(randf_range(-20, 20), 0)
 	get_parent().add_child(enemy)

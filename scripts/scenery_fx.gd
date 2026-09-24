@@ -2,7 +2,7 @@
 # della città, fari che spazzano il cielo, pale del mulino, fumo dal comignolo.
 extends Node2D
 
-var background   # riferimento a background.gd (per le posizioni di antenne e stelle)
+var background   # riferimento a map.gd (per le posizioni di antenne, stelle, mulino)
 var _time := 0.0
 var _smoke_cd := 0.0
 
@@ -18,7 +18,7 @@ func _process(delta: float) -> void:
 	_smoke_cd -= delta
 	if _smoke_cd <= 0 and GameState.fx != null:
 		_smoke_cd = 0.5
-		GameState.fx.smoke(Vector2(76, 462), 1)
+		GameState.fx.smoke(background.FARMHOUSE + Vector2(24, -100), 1)
 	queue_redraw()
 
 
@@ -43,7 +43,7 @@ func _draw() -> void:
 		if _antenna_on(i):
 			draw_rect(Rect2(background.antenna_tops[i] + Vector2(0, -3), Vector2(3, 3)), Color("ff3030"))
 
-	_draw_windmill(Vector2(174, 600))
+	_draw_windmill(background.WINDMILL)
 
 
 func _antenna_on(i: int) -> bool:

@@ -26,9 +26,6 @@ func _physics_process(delta: float) -> void:
 		player.take_damage(damage)
 		GameState.fx.sparks(position, 8, Color("ff6680"))
 		queue_free()
-	elif position.y > GameState.GROUND_Y:
-		GameState.fx.dust(Vector2(position.x, GameState.GROUND_Y), 4)
-		queue_free()
 	elif _life <= 0:
 		queue_free()
 	queue_redraw()

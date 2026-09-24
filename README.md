@@ -30,8 +30,8 @@ Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). L
 
 | Tasto | Azione |
 |---|---|
-| **A / D** (o frecce) | Muoversi lungo la collina |
-| **1 / 2 / 3 / 4** (davanti a un cantiere vuoto, con la bandierina) | Costruire: Recinto (8 rottami), Fossa (6), Spaventapasseri (5), Postazione (10) |
+| **W / A / S / D** (o frecce) | Muoversi sulla collina |
+| **1 / 2 / 3 / 4** (vicino a un cantiere vuoto, con la bandierina) | Costruire: Recinto (8 rottami), Fossa (6), Spaventapasseri (5), Postazione (10). I cantieri fuori dai sentieri accettano solo postazioni |
 | **E** (davanti a una difesa) | Ripararla (3 rottami), oppure assegnare un abitante a una postazione vuota |
 | **Clic sinistro** | Sparare con la doppietta. **Solo 6 cartucce per tutta la notte**: colpisce il primo robot e da vicino fa molto male |
 | **Clic destro su un robot** | Il cane gli morde i cavi e lo stordisce: un robot stordito subisce **danni doppi** |
@@ -40,7 +40,8 @@ Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). L
 
 ## Regole della notte
 
-- Parti con **30 rottami** e **4 cantieri vuoti**. Hai 35 secondi prima della prima onda: scegli cosa costruire.
+- La collina è vista **dall'alto**: il villaggio è in cima, i robot sbucano dal bosco in basso e salgono lungo **due sentieri**.
+- Parti con **30 rottami** e **6 cantieri vuoti**: 4 sui sentieri (bloccano i robot) e 2 al centro (solo postazioni, che colpiscono entrambi i sentieri). Hai 35 secondi prima della prima onda: scegli cosa costruire.
 - **Costruire richiede tempo.** Un abitante libero arriva dal villaggio e lavora al cantiere. Se un robot lo raggiunge mentre lavora, resta ferito per il resto della notte.
 - **Abitanti** (Nonna Edda, Gus, Padre Tobia): costruiscono e riparano, oppure presidiano una **postazione** e da lì lanciano molotov sui robot di terra. Se la postazione crolla, l'abitante resta ferito.
 - **Rottami:** i robot distrutti li lasciano a terra. Li raccogli passandoci sopra, oppure mandando il cane.
@@ -68,7 +69,7 @@ Tutti i numeri importanti sono all'inizio dei file, con commenti in italiano:
 - **Abitanti** (nomi, molotov): `VILLAGERS` in `scripts/main.gd` e `scripts/villager.gd`.
 - **Cane** (velocità, stordimento, attesa tra ordini): `scripts/dog.gd`.
 - **Robot** (vita, velocità, battute): `scripts/enemies/servitore.gd`, `drone.gd`, `segugio.gd`.
-- **Difese** (resistenza): `scripts/defenses/*.gd`. Posizione dei cantieri: `SLOT_POSITIONS` in `scripts/main.gd`.
+- **Difese** (resistenza): `scripts/defenses/*.gd`. Sentieri e posizione dei cantieri: `PATH_POINTS` e `SLOTS` in `scripts/map.gd`.
 - **Aspetto dei personaggi:** `scripts/pixel_art.gd`. Ogni sprite è disegnato con lettere, una per pixel: la tabella `PALETTE` dice che colore corrisponde a ogni lettera, e `.` è trasparente. Cambia le lettere e il personaggio cambia.
 - **Intensità degli effetti:** i numeri passati a `GameState.shake(...)` (scossone) e `GameState.hitstop(...)` (fermo immagine) nei vari script.
 
@@ -82,7 +83,7 @@ scenes/Main.tscn         scena principale (costruisce tutto il livello da codice
 scripts/
   game_state.gd          stato globale: morale, rottami, comandi, fine partita
   main.gd                crea il livello
-  background.gd          sfondo notturno (cielo, città, colline, cascina)
+  map.gd                 mappa vista dall'alto: sentieri, cantieri, villaggio, bosco
   scenery_fx.gd          parti animate dello sfondo (fari, antenne, mulino)
   pixel_art.gd           sprite in pixel art, scritti come testo
   fx.gd                  effetti: scintille, detriti, fumo, fuoco, lampi

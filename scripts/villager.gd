@@ -22,7 +22,8 @@ var hair := Color("5a3a1f")
 # Stati: libero, va_cantiere, costruisce, va_postazione, postazione, ferito
 var state := "libero"
 var hp := 3.0
-var home_x := 60.0
+var home := Vector2(560, 196)         # dove aspetta quando è libero
+var _elev := 0.0                      # altezza da terra (in cima a una postazione)
 var slot = null                       # cantiere su cui lavora
 var post = null                       # postazione che presidia
 var _throw_cd := 0.0
@@ -70,7 +71,7 @@ func release() -> void:
 
 
 func center() -> Vector2:
-	return position + Vector2(0, -20)
+	return position + Vector2(0, -20 - _elev)
 
 
 func take_damage(amount: float) -> void:
@@ -88,7 +89,7 @@ func _get_injured() -> void:
 		post.villager = null
 		post.queue_redraw()
 	post = null
-	position.y = GameState.GROUND_Y
+	_elev = 0.0
 	GameState.spawn_text(center() + Vector2(0, -30), "%s è ferito!" % nome, Color("ff8888"))
 
 
@@ -100,9 +101,9 @@ func _physics_process(delta: float) -> void:
 	_throw_anim -= delta
 	match state:
 		"libero":
-			_move_to(home_x, delta, speed * 0.5)
+			_move_to(home, delta, speed * 0.5)
 		"va_cantiere":
-			if _move_to(slot.position.x - 24, delta, speed):
+			if _move_to(slot.position + Vector2(-24, 2), delta, speed):
 				state = "costruisce"
 		"costruisce":
 			# Il cantiere avanza da solo finché l'abitante è qui.
@@ -115,9 +116,10 @@ func _physics_process(delta: float) -> void:
 			if not is_instance_valid(post) or not post.is_alive():
 				post = null
 				state = "libero"
-			elif _move_to(post.position.x, delta, speed):
+			elif _move_to(post.position + Vector2(0, 1), delta, speed):
+				# Sale sulla piattaforma: lo disegniamo più in alto.
 				state = "postazione"
-				position.y = GameState.GROUND_Y - post.height
+				_elev = post.height
 		"postazione":
 			if not post.is_alive():
 				# La postazione è crollata: l'abitante cade e resta ferito.
@@ -125,7 +127,7 @@ func _physics_process(delta: float) -> void:
 			else:
 				_throw(delta)
 		"ferito":
-			_move_to(home_x, delta, speed * 0.4)
+			_move_to(home, delta, speed * 0.4)
 	queue_redraw()
 
 
@@ -133,34 +135,36 @@ func _throw(delta: float) -> void:
 	_throw_cd -= delta
 	if _throw_cd > 0:
 		return
-	# Cerca il robot di terra più vicino davanti alla postazione.
+	# Cerca il robot di terra più vicino alla postazione.
 	var target = null
 	var best := throw_range
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if enemy.flying or enemy.is_dying():
 			continue
-		var dx: float = enemy.position.x - position.x
-		if dx > -20 and dx < best:
-			best = dx
+		var dist: float = enemy.position.distance_to(position)
+		if dist < best:
+			best = dist
 			target = enemy
 	if target == null:
 		return
 	_throw_cd = throw_interval
 	_throw_anim = 0.25
-	_facing = 1
+	_facing = 1 if target.position.x >= position.x else -1
 	var molotov = MolotovScript.new()
 	molotov.position = center()
-	molotov.target = Vector2(target.position.x - target.speed * 0.4, GameState.GROUND_Y)
+	# Mira un po' più avanti lungo la direzione di marcia del robot.
+	molotov.target = target.position + target._dir * target.speed * 0.4
 	get_parent().add_child(molotov)
 
 
-func _move_to(x: float, delta: float, spd: float) -> bool:
-	var dx := x - position.x
-	if abs(dx) < 4:
+func _move_to(target: Vector2, delta: float, spd: float) -> bool:
+	var diff := target - position
+	if diff.length() < 4:
 		return true
-	position.x += sign(dx) * min(abs(dx), spd * delta)
+	position += diff.limit_length(spd * delta)
 	_walking = true
-	_facing = 1 if dx > 0 else -1
+	if absf(diff.x) > 1:
+		_facing = 1 if diff.x > 0 else -1
 	return false
 
 
@@ -171,7 +175,9 @@ func _draw() -> void:
 		frame = "villager_2"
 	var colors := {"c": color, "C": color.darkened(0.35), "h": hair}
 	var tint := Color(0.55, 0.55, 0.6) if is_injured() else Color.WHITE
-	PixelArt.draw(self, PixelArt.texture(frame, colors), _facing < 0, Vector2.ZERO, tint)
+	PixelArt.draw(self, PixelArt.texture(frame, colors), _facing < 0, Vector2(0, -_elev), tint)
+	# Il resto (martello, braccio, nome) va disegnato alla stessa altezza.
+	draw_set_transform(Vector2(0, -_elev), 0.0, Vector2.ONE)
 	var k := Color("1b1418")
 	if state == "costruisce":
 		# Martello che batte.
@@ -184,5 +190,6 @@ func _draw() -> void:
 		# Braccio alzato mentre lancia.
 		draw_line(Vector2(3, -24), Vector2(12, -45), k, 4)
 	# Il nome si vede solo quando sta facendo qualcosa (a casa si accavallerebbero).
-	if state != "libero" or absf(position.x - home_x) > 10:
+	if state != "libero" or position.distance_to(home) > 10:
 		draw_string(ThemeDB.fallback_font, Vector2(-44, -42), nome, HORIZONTAL_ALIGNMENT_CENTER, 88, 11, Color("f0e0c0"))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

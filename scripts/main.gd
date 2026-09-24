@@ -13,13 +13,11 @@ const WaveManagerScript := preload("res://scripts/wave_manager.gd")
 const HudScript := preload("res://scripts/hud.gd")
 const SlotScript := preload("res://scripts/build_slot.gd")
 const VillagerScript := preload("res://scripts/villager.gd")
-const BackgroundScript := preload("res://scripts/background.gd")
+const MapScript := preload("res://scripts/map.gd")
 const SceneryFxScript := preload("res://scripts/scenery_fx.gd")
 const FxScript := preload("res://scripts/fx.gd")
 const LightsScript := preload("res://scripts/lights.gd")
 
-# Posizioni dei cantieri lungo la collina (da destra verso il villaggio).
-const SLOT_POSITIONS := [1060.0, 880.0, 700.0, 520.0]
 # Abitanti disponibili all'inizio della notte: nome, vestiti, capelli.
 const VILLAGERS := [
 	["Nonna Edda", Color("9a5a8a"), Color("b8b8c0")],
@@ -34,12 +32,18 @@ var dog
 # _ready() viene chiamata una volta, quando il nodo entra in scena.
 func _ready() -> void:
 	GameState.reset()
+	# Ordinamento in profondità: chi è più in basso sullo schermo viene
+	# disegnato davanti (vista dall'alto in 3/4).
+	y_sort_enabled = true
 
 	# Sfondo statico e sfondo animato (z_index negativo: stanno dietro a tutto).
-	var background = BackgroundScript.new()
-	add_child(background)
+	# La mappa: terreno, sentieri, villaggio. La creiamo per prima perché
+	# tutti gli altri la usano (GameState.map).
+	var map = MapScript.new()
+	add_child(map)
+	GameState.map = map
 	var scenery = SceneryFxScript.new()
-	scenery.background = background
+	scenery.background = map
 	add_child(scenery)
 
 	# Camera fissa al centro dello schermo: serve per farla tremare.
@@ -55,9 +59,9 @@ func _ready() -> void:
 	add_child(LightsScript.new())
 
 	# Cantieri vuoti: sarà il giocatore a decidere cosa costruire.
-	for x in SLOT_POSITIONS:
+	for pos in map.SLOTS:
 		var slot = SlotScript.new()
-		slot.position = Vector2(x, GameState.GROUND_Y)
+		slot.position = pos
 		slot.main = self
 		add_child(slot)
 
@@ -66,16 +70,16 @@ func _ready() -> void:
 		villager.nome = VILLAGERS[i][0]
 		villager.color = VILLAGERS[i][1]
 		villager.hair = VILLAGERS[i][2]
-		villager.home_x = 40.0 + i * 25.0
-		villager.position = Vector2(villager.home_x, GameState.GROUND_Y)
+		villager.home = map.HOME + Vector2(-i * 30.0, 4.0 * i)
+		villager.position = villager.home
 		add_child(villager)
 
 	player = PlayerScript.new()
-	player.position = Vector2(320, GameState.GROUND_Y)
+	player.position = Vector2(640, 280)
 	add_child(player)
 
 	dog = DogScript.new()
-	dog.position = Vector2(260, GameState.GROUND_Y)
+	dog.position = Vector2(600, 290)
 	dog.player = player
 	add_child(dog)
 
@@ -91,11 +95,11 @@ func _ready() -> void:
 	add_child(hud)
 
 
-# Restituisce l'abitante libero più vicino al punto x (o null se non ce ne sono).
-func find_free_villager(x: float):
+# Restituisce l'abitante libero più vicino al punto `pos` (o null se non ce ne sono).
+func find_free_villager(pos: Vector2):
 	var best = null
 	for villager in get_tree().get_nodes_in_group("villagers"):
-		if villager.is_free() and (best == null or abs(villager.position.x - x) < abs(best.position.x - x)):
+		if villager.is_free() and (best == null or villager.position.distance_to(pos) < best.position.distance_to(pos)):
 			best = villager
 	return best
 

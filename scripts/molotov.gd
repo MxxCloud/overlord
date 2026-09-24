@@ -52,7 +52,7 @@ func _explode() -> void:
 	GameState.fx.scorch(position)
 	GameState.shake(3.0)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if not enemy.flying and abs(enemy.position.x - target.x) < radius:
+		if not enemy.flying and enemy.position.distance_to(target) < radius:
 			enemy.take_damage(damage)
 
 

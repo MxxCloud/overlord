@@ -99,8 +99,10 @@ func _spawn(pos: Vector2, vel: Vector2, life: float, color: Color, size: int,
 		gravity: float, bounce: bool, drag: float = 0.0) -> void:
 	if _particles.size() >= MAX_PARTICLES:
 		return
+	# Il "pavimento" su cui rimbalzano i detriti: un po' sotto il punto di partenza
+	# (nella vista dall'alto ogni cosa ha il suo terreno alla propria altezza).
 	_particles.append({"pos": pos, "vel": vel, "life": life, "max": life, "color": color,
-		"size": size, "gravity": gravity, "bounce": bounce, "drag": drag})
+		"size": size, "gravity": gravity, "bounce": bounce, "drag": drag, "floor": pos.y + 24.0})
 
 
 func _process(delta: float) -> void:
@@ -109,8 +111,8 @@ func _process(delta: float) -> void:
 		p["vel"] *= max(0.0, 1.0 - p["drag"] * delta)
 		p["pos"] += p["vel"] * delta
 		# Rimbalzo sul terreno.
-		if p["bounce"] and p["pos"].y > GameState.GROUND_Y:
-			p["pos"].y = GameState.GROUND_Y
+		if p["bounce"] and p["pos"].y > p["floor"]:
+			p["pos"].y = p["floor"]
 			p["vel"].y *= -0.35
 			p["vel"].x *= 0.6
 		p["life"] -= delta

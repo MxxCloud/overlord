@@ -4,10 +4,12 @@
 # script: ereditano tutto il comportamento e cambiano solo i numeri, gli
 # sprite e le battute. È il concetto di EREDITARIETÀ.
 #
-# Comportamento: il robot avanza verso sinistra (il cancello). Se trova una
-# difesa che lo blocca la colpisce; se tocca il protagonista lo colpisce;
-# se c'è un altro robot davanti si mette in fila; se arriva al cancello fa
-# calare il morale del villaggio.
+# Comportamento: il robot sbuca dal bosco e sale lungo un SENTIERO (vedi
+# map.gd) verso il cancello. `progress` è quanta strada ha fatto lungo il
+# sentiero. Se trova una difesa che lo blocca la colpisce; se tocca il
+# protagonista lo colpisce; se c'è un altro robot davanti si mette in fila;
+# se arriva al cancello fa calare il morale del villaggio.
+# I robot volanti (droni) invece vanno dritti verso il cancello.
 extends Node2D
 
 const PixelArt := preload("res://scripts/pixel_art.gd")
@@ -25,6 +27,9 @@ var sprite_frames: Array = []  # nomi degli sprite in pixel_art.gd (animazione)
 var frame_time := 0.25       # secondi per ogni fotogramma dell'animazione
 var size := Vector2(28, 40)
 var color := Color("707a88") # colore dei detriti quando esplode
+var fly_height := 0.0        # altezza da terra (solo i volanti): lo sprite è sollevato
+var path_id := 0             # su quale sentiero cammina (lo sceglie wave_manager.gd)
+var progress := 0.0          # strada fatta lungo il sentiero, in pixel
 var spawn_lines: Array = []  # battute quando entra in scena
 var death_lines: Array = []  # battute quando viene distrutto
 
@@ -38,6 +43,8 @@ var _attack_cd := 0.0
 var _anim_time := 0.0
 var _moving := false
 var _eye_offset := Vector2.ZERO
+var _lane := 0.0             # piccolo scostamento laterale, per non camminare in fila indiana
+var _dir := Vector2.UP       # direzione di marcia (per specchiare lo sprite)
 var _dying := false
 var _bubble: Label
 var _bubble_time := 0.0
@@ -51,6 +58,8 @@ func _ready() -> void:
 		size = PixelArt.screen_size(sprite_frames[0])
 		_eye_offset = PixelArt.pixel_offset(sprite_frames[0], "E")
 	_attack_cd = randf() * attack_interval
+	_lane = randf_range(-9.0, 9.0)
+	_update_position()
 	_anim_time = randf()
 	_bubble = GameState.make_label("", 12)
 	_bubble.size = Vector2(260, 20)
@@ -64,7 +73,15 @@ func _ready() -> void:
 
 
 func center() -> Vector2:
-	return position + Vector2(0, -size.y * 0.5)
+	return position + Vector2(0, -size.y * 0.5 - fly_height)
+
+
+# Mette il robot nel punto del sentiero corrispondente a `progress`.
+func _update_position() -> void:
+	if flying:
+		return
+	_dir = GameState.map.path_direction(path_id, progress)
+	position = GameState.map.path_point(path_id, progress) + Vector2(-_dir.y, _dir.x) * _lane
 
 
 func is_dying() -> bool:
@@ -81,10 +98,20 @@ func stun(seconds: float) -> void:
 	_stun_time = max(_stun_time, seconds)
 
 
+# Spinta all'indietro (giù per la collina).
 func knockback(pixels: float) -> void:
-	if not trapped:
-		position.x += pixels
-		stun(0.4)  # barcolla un attimo dopo il colpo
+	if trapped:
+		return
+	_push_back(pixels)
+	stun(0.4)  # barcolla un attimo dopo il colpo
+
+
+func _push_back(pixels: float) -> void:
+	if flying:
+		position -= _dir * pixels
+	else:
+		progress = max(0.0, progress - pixels)
+		_update_position()
 
 
 func is_stunned() -> bool:
@@ -102,8 +129,8 @@ func take_damage(amount: float) -> void:
 	_hit_flash = 0.08
 	_hit_jitter = 0.15
 	GameState.fx.sparks(center() + Vector2(randf_range(-8, 8), randf_range(-8, 8)), 7)
-	if not trapped and not flying:
-		position.x += 4.0
+	if not trapped:
+		_push_back(4.0)
 	GameState.shake(1.5)
 	if hp <= 0:
 		_die()
@@ -122,6 +149,7 @@ func _die() -> void:
 	for i in scrap_drop:
 		var scrap = preload("res://scripts/scrap.gd").new()
 		scrap.position = center()
+		scrap.floor_y = position.y + randf_range(-6, 6)
 		scrap.velocity = Vector2(randf_range(-90, 90), randf_range(-260, -140))
 		get_parent().add_child(scrap)
 	# queue_free elimina il nodo alla fine del frame.
@@ -158,7 +186,7 @@ func _physics_process(delta: float) -> void:
 	var crowded := false
 	if blocker == null and _blocked_by_crowd():
 		crowded = true
-		blocker = _find_blocker(size.x * 0.8)
+		blocker = _find_blocker(20.0)
 	if blocker != null:
 		if _attack_cd <= 0:
 			_attack_cd = attack_interval
@@ -168,19 +196,19 @@ func _physics_process(delta: float) -> void:
 
 	# 2) Tocco il cane? Lo mordo di passaggio (senza fermarmi).
 	var dog = get_tree().get_first_node_in_group("dog")
-	if not flying and dog != null and not dog.is_injured() and abs(dog.position.x - position.x) < size.x * 0.5 + 12:
+	if not flying and dog != null and not dog.is_injured() and dog.position.distance_to(position) < 24:
 		dog.take_damage(dps * 0.5 * delta)
 
 	# 3) Tocco un abitante che lavora allo scoperto? Lo ferisco di passaggio.
 	if not flying:
 		for villager in get_tree().get_nodes_in_group("villagers"):
-			if villager.is_exposed() and abs(villager.position.x - position.x) < size.x * 0.5 + 10:
+			if villager.is_exposed() and villager.position.distance_to(position) < 24:
 				villager.take_damage(dps * delta)
 
 	# 4) Tocco il protagonista? Mi fermo e lo colpisco.
 	var player = get_tree().get_first_node_in_group("player")
 	if not flying and player != null and not player.is_dead() \
-			and abs(player.position.x - position.x) < size.x * 0.5 + 12:
+			and player.position.distance_to(position) < 26:
 		if _attack_cd <= 0:
 			_attack_cd = attack_interval
 			_lunge = 0.12
@@ -192,9 +220,16 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# 6) Altrimenti avanzo verso il cancello.
-	position.x -= speed * delta
 	_moving = true
 	_anim_time += delta
+	if flying:
+		_dir = (GameState.map.GATE - position).normalized()
+		position += _dir * speed * delta
+		if position.distance_to(GameState.map.GATE) < 10:
+			_reach_gate()
+		return
+	progress += speed * delta
+	_update_position()
 
 	# Sono finito in una fossa?
 	for defense in get_tree().get_nodes_in_group("defenses"):
@@ -202,13 +237,13 @@ func _physics_process(delta: float) -> void:
 			trapped = true
 			break
 
-	if position.x <= GameState.GATE_X:
+	if progress >= GameState.map.path_length(path_id) - 2.0:
 		_reach_gate()
 
 
 func _reach_gate() -> void:
 	GameState.damage_morale(morale_damage)
-	GameState.spawn_text(Vector2(GameState.GATE_X + 60, GameState.GROUND_Y - 120), "-%d morale" % morale_damage, Color("ff6666"))
+	GameState.spawn_text(GameState.map.GATE + Vector2(0, -90), "-%d morale" % morale_damage, Color("ff6666"))
 	GameState.fx.flash(center(), 60.0, Color(1.0, 0.2, 0.2, 0.8), 0.2)
 	GameState.fx.splinters(center(), 6)
 	GameState.shake(6.0)
@@ -220,21 +255,31 @@ func _find_blocker(extra_reach: float):
 	for defense in get_tree().get_nodes_in_group("defenses"):
 		if not defense.blocks(self):
 			continue
-		var dx: float = position.x - defense.position.x
-		if dx > 0 and dx < defense.width * 0.5 + size.x * 0.5 + 2 + extra_reach:
+		# I volanti si fermano solo sopra ciò che li attira (lo spaventapasseri).
+		if flying:
+			if defense.position.distance_to(position) < 50.0 + extra_reach:
+				return defense
+			continue
+		# A terra: la difesa deve stare sul mio sentiero, poco più avanti di me.
+		if not defense.path_progress.has(path_id):
+			continue
+		var gap: float = defense.path_progress[path_id] - progress
+		if gap > 0 and gap < defense.width * 0.5 + 14.0 + extra_reach:
 			return defense
 	return null
 
 
-# C'è un altro robot di terra subito davanti a me (a sinistra)?
+# C'è un altro robot di terra subito davanti a me sullo stesso sentiero?
 func _blocked_by_crowd() -> bool:
 	if flying:
 		return false
 	for other in get_tree().get_nodes_in_group("enemies"):
 		if other == self or other.flying or other.trapped or other.is_dying():
 			continue
-		var dx: float = position.x - other.position.x
-		if dx > 0 and dx < (size.x + other.size.x) * 0.3:
+		if other.path_id != path_id:
+			continue
+		var gap: float = other.progress - progress
+		if gap > 0 and gap < 20.0:
 			return true
 	return false
 
@@ -250,25 +295,35 @@ func _current_frame() -> String:
 	return sprite_frames[index]
 
 
+func _flipped() -> bool:
+	return _dir.x > 0.05   # gli sprite guardano a sinistra: se vado a destra li specchio
+
+
 func get_lights() -> Array:
+	var eye := _eye_offset
+	if _flipped():
+		eye.x = -eye.x
+	eye.y -= fly_height
 	if is_stunned():
-		return [[position + _eye_offset, 22.0, Color(0.4, 0.8, 1.0, 0.5 * randf())]]
-	return [[position + _eye_offset, 18.0, Color(1.0, 0.1, 0.1, 0.45)]]
+		return [[position + eye, 22.0, Color(0.4, 0.8, 1.0, 0.5 * randf())]]
+	return [[position + eye, 18.0, Color(1.0, 0.1, 0.1, 0.45)]]
 
 
 func _draw() -> void:
-	# Affondo (verso sinistra) quando colpisce, tremolio quando è colpito.
-	var offset := Vector2(-9.0 * sin(_lunge / 0.12 * PI), 0)
+	# Ombra a terra (ai volanti fa capire dove sono).
+	draw_rect(Rect2(-size.x * 0.4, -3, size.x * 0.8, 6), Color(0, 0, 0, 0.3))
+	# Affondo in avanti quando colpisce, tremolio quando è colpito.
+	var offset := _dir * 9.0 * sin(_lunge / 0.12 * PI) + Vector2(0, -fly_height)
 	if _hit_jitter > 0:
 		offset.x += randf_range(-3, 3)
 	var frame := _current_frame()
 	var tex := PixelArt.flash_texture(frame) if _hit_flash > 0 else PixelArt.texture(frame)
-	PixelArt.draw(self, tex, false, offset)
+	PixelArt.draw(self, tex, _flipped(), offset)
 
 	# Robot stordito: scariche elettriche intorno al corpo.
 	if is_stunned():
 		for i in 2:
-			var start := Vector2(randf_range(-size.x * 0.5, size.x * 0.5), -size.y + randf() * 6)
+			var start := Vector2(randf_range(-size.x * 0.5, size.x * 0.5), -size.y - fly_height + randf() * 6)
 			var points := PackedVector2Array([start])
 			for j in 4:
 				points.append(points[j] + Vector2(randf_range(-6, 6), size.y / 4.0))
@@ -277,5 +332,5 @@ func _draw() -> void:
 	# Barra della vita (solo se è stato colpito).
 	if hp < max_hp:
 		var ratio: float = clamp(hp / max_hp, 0.0, 1.0)
-		draw_rect(Rect2(-15, -size.y - 9, 30, 3), Color("330000"))
-		draw_rect(Rect2(-15, -size.y - 9, 30 * ratio, 3), Color("ff4444"))
+		draw_rect(Rect2(-15, -size.y - fly_height - 9, 30, 3), Color("330000"))
+		draw_rect(Rect2(-15, -size.y - fly_height - 9, 30 * ratio, 3), Color("ff4444"))

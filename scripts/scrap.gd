@@ -6,6 +6,7 @@ extends Node2D
 @export var value := 1
 
 var velocity := Vector2.ZERO   # impostata da chi lo crea (l'esplosione)
+var floor_y := 0.0             # la "quota" del terreno dove atterra
 var _landed := false
 var _time := 0.0
 
@@ -34,8 +35,8 @@ func _physics_process(delta: float) -> void:
 	if not _landed:
 		velocity.y += 900.0 * delta
 		position += velocity * delta
-		if position.y >= GameState.GROUND_Y:
-			position.y = GameState.GROUND_Y
+		if position.y >= floor_y and velocity.y > 0:
+			position.y = floor_y
 			if velocity.y > 120.0:
 				velocity = Vector2(velocity.x * 0.5, -velocity.y * 0.35)  # rimbalzo
 			else:

@@ -143,7 +143,7 @@ La campagna è scandita in **giorni** (target: circa 30 giorni in gioco). Il con
 ```
 
 ### 4.2 Fase notturna: l'assedio
-- **Vista:** laterale 2D con leggera profondità (2–3 corsie di profondità sul pendio), come nell'immagine di riferimento. La collina scende da sinistra (cascina, villaggio) verso destra (valle, città).
+- **Vista:** campo di battaglia fisso visto dall'alto in 3/4 (stile *Kingdom Rush*). Il villaggio è in cima alla collina, con la città all'orizzonte; i robot sbucano dal bosco alle pendici e salgono lungo **sentieri fissi** che convergono sul cancello. I cantieri stanno sui sentieri (difese che bloccano) o a lato (postazioni). Scelta presa dopo i primi playtest, al posto della vista laterale.
 - **Durata:** 3–6 minuti per notte.
 - **Obiettivo:** impedire ai robot di raggiungere il **cancello del villaggio**. Superata la cascina, i robot danneggiano edifici e abitanti.
 - **Il protagonista è un comandante, non un eroe d'azione** (decisione presa dopo i primi playtest, ispirata a *Kingdom*). Il ritmo è compassato: la notte si vince preparandosi, non con i riflessi.

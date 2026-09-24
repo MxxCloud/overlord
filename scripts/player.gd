@@ -56,7 +56,7 @@ func take_damage(amount: float) -> void:
 	hp -= amount
 	_hurt_time = 0.15
 	# Urto: spinta all'indietro, scossone e schermo che lampeggia di rosso (HUD).
-	position.x = max(20.0, position.x - 10.0)
+	_move_clamped(Vector2(0, -10))   # spinto indietro, verso il villaggio
 	GameState.shake(4.0)
 	GameState.player_hurt.emit()
 	if hp <= 0:
@@ -70,10 +70,12 @@ func _physics_process(delta: float) -> void:
 	if GameState.finished:
 		return
 
-	var dir := Input.get_axis("sinistra", "destra")
-	position.x = clamp(position.x + dir * speed * delta, 20.0, GameState.SCREEN_W - 20)
-	if dir != 0:
-		facing = 1 if dir > 0 else -1
+	# Movimento su tutto il piano: get_vector combina i quattro tasti.
+	var dir := Input.get_vector("sinistra", "destra", "su", "giu")
+	_move_clamped(dir * speed * delta)
+	if dir != Vector2.ZERO:
+		if absf(dir.x) > 0.1:
+			facing = 1 if dir.x > 0 else -1
 		_walk_time += delta
 		# Sbuffi di polvere ai passi.
 		_step_cd -= delta
@@ -110,7 +112,7 @@ func _shoot() -> void:
 	var origin := center()
 	var muzzle := origin + _aim * 34.0
 	# Feedback dello sparo: rinculo, scossone, fiammata, fumo, bossolo, pallini.
-	position.x = clamp(position.x - _aim.x * 10.0, 20.0, GameState.SCREEN_W - 20)
+	_move_clamped(-_aim * 10.0)
 	GameState.shake(6.0)
 	GameState.fx.flash(muzzle, 40.0, Color(1.0, 0.85, 0.4, 1.0), 0.08)
 	GameState.fx.smoke(muzzle, 4)
@@ -142,6 +144,12 @@ func _shoot() -> void:
 		# I pallini si fermano sul robot colpito.
 		for i in _pellets.size():
 			_pellets[i] = _pellets[i].limit_length(best_dist)
+
+
+# Sposta il protagonista restando dentro l'area calpestabile della mappa.
+func _move_clamped(offset: Vector2) -> void:
+	var area: Rect2 = GameState.map.PLAY_AREA
+	position = (position + offset).clamp(area.position, area.end)
 
 
 func _pick_up_scrap() -> void:

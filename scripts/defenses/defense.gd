@@ -10,11 +10,13 @@ var max_hp := 20.0
 var width := 40.0            # ingombro orizzontale in pixel
 var hp := 20.0
 var _jitter := 0.0           # tremolio quando viene colpita
+var path_progress := {}      # {sentiero: progresso} se sta su un sentiero (vedi map.paths_near)
 
 
 func _ready() -> void:
 	add_to_group("defenses")
 	hp = max_hp
+	path_progress = GameState.map.paths_near(position)
 	# Appena costruita: sbuffo di polvere.
 	GameState.fx.dust(position, 8)
 	GameState.shake(2.0)

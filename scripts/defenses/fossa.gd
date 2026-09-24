@@ -14,10 +14,10 @@ func _init() -> void:
 func try_trap(enemy) -> bool:
 	if not is_alive() or enemy.flying or enemy.jumps_pits or enemy.trapped:
 		return false
-	if abs(enemy.position.x - position.x) > 8:
+	if not path_progress.has(enemy.path_id) or absf(path_progress[enemy.path_id] - enemy.progress) > 8:
 		return false
 	take_damage(1.0)
-	enemy.position = position + Vector2(randf_range(-10, 10), 18)
+	enemy.position = position + Vector2(randf_range(-10, 10), 6)
 	GameState.fx.dust(position, 10)
 	GameState.fx.sparks(position + Vector2(0, -10), 6)
 	GameState.shake(3.0)
