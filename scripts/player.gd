@@ -8,6 +8,8 @@
 # L'origine del nodo (position) corrisponde ai PIEDI del personaggio.
 extends Node2D
 
+const PixelArt := preload("res://scripts/pixel_art.gd")
+
 # @export rende la variabile modificabile dall'editor (pannello Ispettore).
 @export var speed := 170.0
 @export var max_hp := 6.0
@@ -25,12 +27,16 @@ var _shot_cd := 0.0
 var _flash_time := 0.0
 var _hurt_time := 0.0
 var _aim := Vector2.RIGHT
+var _walk_time := 0.0
+var _step_cd := 0.0
+var _pellets: Array = []  # punti d'arrivo dei pallini, per disegnarli un istante
 
 
 func _ready() -> void:
 	# I GRUPPI sono etichette: altri script trovano il giocatore con
 	# get_tree().get_first_node_in_group("player").
 	add_to_group("player")
+	add_to_group("lights")   # la fiammata dello sparo illumina la scena
 	hp = max_hp
 	shells = max_shells
 
@@ -48,7 +54,11 @@ func take_damage(amount: float) -> void:
 	if is_dead():
 		return
 	hp -= amount
-	_hurt_time = 0.1
+	_hurt_time = 0.15
+	# Urto: spinta all'indietro, scossone e schermo che lampeggia di rosso (HUD).
+	position.x = max(20.0, position.x - 10.0)
+	GameState.shake(4.0)
+	GameState.player_hurt.emit()
 	if hp <= 0:
 		GameState.end_game(false)
 
@@ -64,6 +74,14 @@ func _physics_process(delta: float) -> void:
 	position.x = clamp(position.x + dir * speed * delta, 20.0, GameState.SCREEN_W - 20)
 	if dir != 0:
 		facing = 1 if dir > 0 else -1
+		_walk_time += delta
+		# Sbuffi di polvere ai passi.
+		_step_cd -= delta
+		if _step_cd <= 0:
+			_step_cd = 0.3
+			GameState.fx.dust(position + Vector2(-facing * 6, 0), 2)
+	else:
+		_walk_time = 0.0
 
 	var mouse := get_global_mouse_position()
 	_aim = (mouse - center()).normalized()
@@ -87,9 +105,20 @@ func _shoot() -> void:
 		return
 	shells -= 1
 	_shot_cd = shot_cooldown
-	_flash_time = 0.08
+	_flash_time = 0.1
 	facing = 1 if _aim.x >= 0 else -1
 	var origin := center()
+	var muzzle := origin + _aim * 34.0
+	# Feedback dello sparo: rinculo, scossone, fiammata, fumo, bossolo, pallini.
+	position.x = clamp(position.x - _aim.x * 10.0, 20.0, GameState.SCREEN_W - 20)
+	GameState.shake(6.0)
+	GameState.fx.flash(muzzle, 40.0, Color(1.0, 0.85, 0.4, 1.0), 0.08)
+	GameState.fx.smoke(muzzle, 4)
+	GameState.fx.debris(origin, [Color("c9a050")], 1)
+	_pellets.clear()
+	for i in 6:
+		var spread := deg_to_rad(randf_range(-shotgun_spread_deg, shotgun_spread_deg))
+		_pellets.append(_aim.rotated(spread) * randf_range(0.6, 1.0) * shotgun_range)
 	# I pallini si fermano sul PRIMO robot che incontrano: cerchiamo il più
 	# vicino dentro il "cono" davanti alla canna.
 	var best = null
@@ -109,6 +138,10 @@ func _shoot() -> void:
 	if best != null:
 		var falloff := 1.0 - (best_dist / shotgun_range) * 0.7
 		best.take_damage(shotgun_damage * falloff)
+		best.knockback(12.0 * falloff)
+		# I pallini si fermano sul robot colpito.
+		for i in _pellets.size():
+			_pellets[i] = _pellets[i].limit_length(best_dist)
 
 
 func _pick_up_scrap() -> void:
@@ -117,20 +150,30 @@ func _pick_up_scrap() -> void:
 			scrap.collect()
 
 
-func _draw() -> void:
-	# Disegno placeholder: jeans, camicia a quadri, testa.
-	var hurt := _hurt_time > 0
-	draw_rect(Rect2(-9, -24, 18, 24), Color("2f4a7a"))                              # jeans
-	draw_rect(Rect2(-11, -46, 22, 22), Color.WHITE if hurt else Color("8a2a24"))   # camicia
-	draw_line(Vector2(-11, -38), Vector2(11, -38), Color("3a1512"), 2)              # quadri
-	draw_line(Vector2(0, -46), Vector2(0, -24), Color("3a1512"), 2)
-	draw_rect(Rect2(-7, -60, 14, 14), Color("e0b48a"))                              # testa
-	draw_rect(Rect2(-8, -63, 16, 5), Color("5a3a1f"))                               # capelli
+func get_lights() -> Array:
+	if _flash_time > 0:
+		return [[center() + _aim * 34.0, 140.0, Color(1.0, 0.8, 0.4, 0.45)]]
+	return []
 
-	# Doppietta: puntata verso il mouse solo quando spara, altrimenti a tracolla.
+
+func _draw() -> void:
+	# Sprite in pixel art: camminata a due fotogrammi, specchiato se va a sinistra.
+	var frame := "player_idle"
+	if _walk_time > 0 and int(_walk_time / 0.15) % 2 == 0:
+		frame = "player_walk"
+	var tex := PixelArt.flash_texture(frame) if _hurt_time > 0 else PixelArt.texture(frame)
+	PixelArt.draw(self, tex, facing < 0)
+
+	# Doppietta: puntata verso il mouse quando spara, altrimenti a tracolla.
 	var gun_start := Vector2(0, -30)
 	if _flash_time > 0:
-		draw_line(gun_start, gun_start + _aim * 28, Color("3b2a1a"), 4)
-		draw_line(gun_start + _aim * 28, gun_start + _aim * 60, Color("ffdd66"), 6)
+		draw_line(gun_start, gun_start + _aim * 34, Color("1b1418"), 6)
+		draw_line(gun_start, gun_start + _aim * 34, Color("6b4a2a"), 3)
+		# Pallini: linee sottili che partono dalla canna.
+		var muzzle := gun_start + _aim * 34
+		for p in _pellets:
+			draw_line(muzzle, gun_start + p, Color(1.0, 0.9, 0.5, _flash_time * 8.0), 1)
+		draw_circle(muzzle, 6, Color("fff0a0"))
 	else:
-		draw_line(Vector2(-facing * 8, -44), Vector2(facing * 8, -20), Color("3b2a1a"), 3)
+		draw_line(Vector2(-facing * 9, -48), Vector2(facing * 9, -21), Color("1b1418"), 5)
+		draw_line(Vector2(-facing * 9, -48), Vector2(facing * 9, -21), Color("6b4a2a"), 3)

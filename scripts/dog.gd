@@ -10,6 +10,8 @@
 #   (un robot stordito subisce danni doppi).
 extends Node2D
 
+const PixelArt := preload("res://scripts/pixel_art.gd")
+
 @export var speed := 320.0
 @export var max_hp := 4.0
 @export var bite_stun := 2.5           # secondi di stordimento del morso
@@ -27,6 +29,10 @@ var _target_x := 0.0
 var _target_enemy = null
 var _bark_label: Label
 var _bark_time := 0.0
+var _running := false
+var _run_time := 0.0
+var _lunge := 0.0          # scatto in avanti quando morde
+var _dust_cd := 0.0
 
 
 func _ready() -> void:
@@ -81,6 +87,8 @@ func _physics_process(delta: float) -> void:
 	if GameState.finished:
 		return
 	cooldown = max(0.0, cooldown - delta)
+	_lunge = max(0.0, _lunge - delta)
+	_running = false
 	_bark_time -= delta
 	if _bark_time <= 0:
 		_bark_label.visible = false
@@ -123,6 +131,11 @@ func _bite(enemy) -> void:
 	var dmg := bite_damage * (2.0 if enemy.kind == "segugio" else 1.0)
 	enemy.stun(bite_stun)
 	enemy.take_damage(dmg)
+	# Morso ai cavi: scatto, scintille elettriche, piccolo scossone.
+	_lunge = 0.15
+	GameState.fx.electric(enemy.center(), 12)
+	GameState.fx.flash(enemy.center(), 30.0, Color(0.5, 0.85, 1.0, 0.9), 0.1)
+	GameState.shake(2.5)
 	bark("GRRR!")
 
 
@@ -150,18 +163,23 @@ func _move_to(x: float, delta: float, spd: float) -> bool:
 		return true
 	facing = 1 if dx > 0 else -1
 	position.x += facing * min(abs(dx), spd * delta)
+	_running = true
+	_run_time += delta
+	# Polvere quando corre forte.
+	_dust_cd -= delta
+	if spd > 200.0 and _dust_cd <= 0:
+		_dust_cd = 0.12
+		GameState.fx.dust(position + Vector2(-facing * 12, 0), 1)
 	return false
 
 
 func _draw() -> void:
-	# Border collie placeholder: corpo nero, muso e zampe bianche.
-	var f := facing
-	var body := Color("555555") if is_injured() else Color("151515")
-	draw_rect(Rect2(-14, -20, 28, 12), body)                        # corpo
-	draw_rect(Rect2(-4, -20, 8, 12), Color("eeeeee"))               # macchia bianca
-	draw_rect(Rect2(f * 12 - 6, -28, 12, 11), body)                 # testa
-	draw_rect(Rect2(f * 16 - 3, -22, 7, 5), Color("eeeeee"))        # muso
-	draw_rect(Rect2(f * 12 - 6, -32, 4, 5), body)                   # orecchio
-	draw_line(Vector2(-f * 14, -18), Vector2(-f * 22, -26), body, 3) # coda
-	for lx in [-11, -5, 5, 11]:
-		draw_rect(Rect2(lx - 1.5, -8, 3, 8), Color("eeeeee"))       # zampe
+	# Sprite in pixel art (guarda a destra: lo specchiamo se va a sinistra).
+	var frame := "dog_1"
+	if _running and int(_run_time / 0.1) % 2 == 1:
+		frame = "dog_2"
+	var tint := Color(0.55, 0.55, 0.6) if is_injured() else Color.WHITE
+	var offset := Vector2(facing * 8.0 * sin(_lunge / 0.15 * PI), 0)
+	if is_injured():
+		offset.y = 3.0 * absf(sin(_run_time * 6.0))   # zoppica
+	PixelArt.draw(self, PixelArt.texture(frame), facing < 0, offset, tint)

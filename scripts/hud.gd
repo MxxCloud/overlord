@@ -14,6 +14,7 @@ var _banner: Label
 var _sniff: Label
 var _report: Label
 var _report_bg: ColorRect
+var _hurt_overlay: ColorRect
 
 
 func _ready() -> void:
@@ -56,6 +57,13 @@ func _ready() -> void:
 	_sniff.modulate = Color("ff5555")
 	add_child(_sniff)
 
+	# Velo rosso che lampeggia quando il protagonista viene colpito.
+	_hurt_overlay = ColorRect.new()
+	_hurt_overlay.color = Color(0.8, 0.05, 0.05, 0.0)
+	_hurt_overlay.size = Vector2(1280, 720)
+	_hurt_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_hurt_overlay)
+
 	_report_bg = ColorRect.new()
 	_report_bg.color = Color(0, 0, 0, 0.75)
 	_report_bg.size = Vector2(1280, 720)
@@ -69,6 +77,8 @@ func _ready() -> void:
 	# Colleghiamo i segnali: quando succede X, chiama la funzione Y.
 	waves.wave_started.connect(_on_wave_started)
 	GameState.game_over.connect(_on_game_over)
+	GameState.player_hurt.connect(_on_player_hurt)
+	GameState.morale_changed.connect(_on_morale_changed)
 
 
 func _process(_delta: float) -> void:
@@ -91,6 +101,20 @@ func _process(_delta: float) -> void:
 		_banner.text = "Onda %d tra %d s\nIl cane fiuta: %s" % [
 			waves.current + 2, ceil(max(waves.pause_left, 0.0)), waves.describe_next_wave()]
 		_banner.modulate.a = 1.0
+
+
+func _on_player_hurt() -> void:
+	_hurt_overlay.color.a = 0.3
+	create_tween().tween_property(_hurt_overlay, "color:a", 0.0, 0.35)
+
+
+# Il morale cala: la barra lampeggia di rosso e sobbalza.
+func _on_morale_changed(_value: int) -> void:
+	_morale_bar.modulate = Color(2.0, 0.4, 0.4)
+	_morale_bar.position.y = 22
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(_morale_bar, "modulate", Color.WHITE, 0.5)
+	tween.tween_property(_morale_bar, "position:y", 16.0, 0.25)
 
 
 func _on_wave_started(number: int) -> void:

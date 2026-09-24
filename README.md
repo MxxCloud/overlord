@@ -2,7 +2,7 @@
 
 Prototipo giocabile di **una notte d'assedio**, per capire se il cuore del gioco è divertente. Il design completo è in [`docs/GDD.md`](docs/GDD.md).
 
-La grafica è fatta di rettangoli: la pixel art arriverà dopo. Qui conta solo *come si gioca*.
+La grafica è in pixel art provvisoria, disegnata direttamente nel codice. Qui conta soprattutto *come si gioca*, ma anche come "si sentono" i colpi.
 
 ---
 
@@ -69,6 +69,8 @@ Tutti i numeri importanti sono all'inizio dei file, con commenti in italiano:
 - **Cane** (velocità, stordimento, attesa tra ordini): `scripts/dog.gd`.
 - **Robot** (vita, velocità, battute): `scripts/enemies/servitore.gd`, `drone.gd`, `segugio.gd`.
 - **Difese** (resistenza): `scripts/defenses/*.gd`. Posizione dei cantieri: `SLOT_POSITIONS` in `scripts/main.gd`.
+- **Aspetto dei personaggi:** `scripts/pixel_art.gd`. Ogni sprite è disegnato con lettere, una per pixel: la tabella `PALETTE` dice che colore corrisponde a ogni lettera, e `.` è trasparente. Cambia le lettere e il personaggio cambia.
+- **Intensità degli effetti:** i numeri passati a `GameState.shake(...)` (scossone) e `GameState.hitstop(...)` (fermo immagine) nei vari script.
 
 Dopo ogni modifica salva il file (Ctrl+S) e premi F5 per riprovare.
 
@@ -79,7 +81,12 @@ project.godot            configurazione del progetto (scena iniziale, finestra, 
 scenes/Main.tscn         scena principale (costruisce tutto il livello da codice)
 scripts/
   game_state.gd          stato globale: morale, rottami, comandi, fine partita
-  main.gd                crea il livello e disegna lo sfondo
+  main.gd                crea il livello
+  background.gd          sfondo notturno (cielo, città, colline, cascina)
+  scenery_fx.gd          parti animate dello sfondo (fari, antenne, mulino)
+  pixel_art.gd           sprite in pixel art, scritti come testo
+  fx.gd                  effetti: scintille, detriti, fumo, fuoco, lampi
+  lights.gd              luci della notte (occhi dei robot, finestre, fuoco)
   player.gd              protagonista
   dog.gd                 cane
   wave_manager.gd        onde di robot
@@ -91,6 +98,7 @@ scripts/
   enemies/               robot (enemy.gd è la base comune)
   defenses/              difese (defense.gd è la base comune)
 tests/smoke_test.gd      test automatico: gioca una partita accelerata
+tools/sprite_preview.gd  salva un'anteprima ingrandita di tutti gli sprite
 docs/GDD.md              Game Design Document
 ```
 

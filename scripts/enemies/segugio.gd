@@ -11,17 +11,12 @@ func _init() -> void:
 	dps = 3.0
 	morale_damage = 15
 	scrap_drop = 3
-	size = Vector2(44, 24)
-	color = Color("3a3440")
+	sprite_frames = ["segugio_1", "segugio_2"]
+	frame_time = 0.12   # zampe veloci
+	color = Color("707a88")
 	spawn_lines = [
 		"TARGET: CANE. CLASSIFICAZIONE: ERRORE.",
 		"ENTITÀ_NON_CLASSIFICATA rilevata. Riprovo.",
 	]
 	death_lines = ["RIPROVO... ERRORE... RIPROVO...", "Cane: ancora non classificato."]
 
-
-func _draw() -> void:
-	super._draw()
-	# Zampe meccaniche.
-	for lx in [-18, -8, 8, 18]:
-		draw_line(Vector2(lx, -4), Vector2(lx - 3, 0), Color("888899"), 3)

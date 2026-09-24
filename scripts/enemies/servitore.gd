@@ -11,8 +11,8 @@ func _init() -> void:
 	dps = 2.0
 	morale_damage = 10
 	scrap_drop = 2
-	size = Vector2(26, 42)
-	color = Color("7a7a88")
+	sprite_frames = ["servitore_1", "servitore_2"]
+	color = Color("707a88")
 	spawn_lines = [
 		"La sua resistenza è importante per noi.",
 		"Buonasera! Posso ottimizzarla?",
@@ -24,8 +24,3 @@ func _init() -> void:
 		"Il suo reclamo è stato inoltrato.",
 	]
 
-
-func _draw() -> void:
-	super._draw()  # disegna prima il corpo base...
-	# ...poi il grembiule bianco.
-	draw_rect(Rect2(-9, -size.y * 0.55, 18, size.y * 0.5), Color("dddddd"))

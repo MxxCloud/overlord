@@ -17,8 +17,9 @@ func _init() -> void:
 	flying = true
 	dps = 3.0
 	morale_damage = 6
-	size = Vector2(30, 14)
-	color = Color("2a2a36")
+	sprite_frames = ["drone_1", "drone_2"]
+	frame_time = 0.06   # eliche velocissime
+	color = Color("454c58")
 	spawn_lines = [
 		"Sondaggio: quanto è soddisfatto della sua fattoria?",
 		"Arrendersi è facile!",
@@ -36,6 +37,7 @@ func _ready() -> void:
 # Il drone vola in alto e ondeggia.
 func _update_extra(delta: float) -> void:
 	_time += delta * 3.0
+	_anim_time += delta  # le eliche girano anche quando è fermo
 	position.y = GameState.GROUND_Y - 170 + sin(_time) * 8
 	# Spara al protagonista quando è a portata (anche mentre è fermo a
 	# confondersi con lo spaventapasseri). Costringe a muoversi.
@@ -48,10 +50,4 @@ func _update_extra(delta: float) -> void:
 			bullet.position = center()
 			bullet.velocity = (player.center() - center()).normalized() * 260.0
 			get_parent().add_child(bullet)
-
-
-func _draw() -> void:
-	super._draw()
-	# Eliche.
-	draw_line(Vector2(-22, -size.y - 2), Vector2(-4, -size.y - 2), Color("aaaaaa"), 2)
-	draw_line(Vector2(4, -size.y - 2), Vector2(22, -size.y - 2), Color("aaaaaa"), 2)
+			GameState.fx.flash(center(), 18.0, Color(1.0, 0.2, 0.3, 0.8), 0.08)

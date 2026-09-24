@@ -11,6 +11,7 @@ extends Node
 signal morale_changed(value)
 signal scrap_changed(value)
 signal game_over(won)
+signal player_hurt
 
 # Costanti del livello (in pixel). Lo schermo è 1280x720.
 const GROUND_Y := 600.0   # altezza del terreno: tutti "camminano" su questa linea
@@ -25,6 +26,13 @@ var scrap := 0            # rottami raccolti: servono a riparare le difese
 var finished := false     # true quando la partita è finita (vinta o persa)
 var kills := 0            # robot distrutti, per il report finale
 
+# Riferimenti impostati da main.gd a ogni partita.
+var fx                    # il nodo degli effetti (fx.gd)
+var camera: Camera2D      # la camera, che facciamo tremare
+
+var _shake := 0.0
+var _hitstop_active := false
+
 
 func _ready() -> void:
 	_setup_input()
@@ -36,6 +44,34 @@ func reset() -> void:
 	scrap = start_scrap
 	finished = false
 	kills = 0
+
+
+# --- "Game feel": scossone e fermo immagine -----------------------------------
+
+# Fa tremare lo schermo. `amount` è l'ampiezza in pixel (2 = leggero, 8 = forte).
+func shake(amount: float) -> void:
+	_shake = max(_shake, amount)
+
+
+# Congela il gioco per un istante (es. 0.05 s) quando un colpo va a segno:
+# è un trucco classico per dare "peso" agli impatti.
+func hitstop(duration: float) -> void:
+	if _hitstop_active:
+		return
+	_hitstop_active = true
+	var previous := Engine.time_scale
+	Engine.time_scale = previous * 0.05
+	# Timer che ignora il rallentamento (ultimo parametro = true).
+	await get_tree().create_timer(duration, true, false, true).timeout
+	Engine.time_scale = previous
+	_hitstop_active = false
+
+
+func _process(delta: float) -> void:
+	if camera != null and is_instance_valid(camera):
+		# Spostamento casuale arrotondato ai pixel, che si smorza velocemente.
+		camera.offset = (Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake).round()
+	_shake = move_toward(_shake, 0.0, 40.0 * delta)
 
 
 func damage_morale(amount: int) -> void:

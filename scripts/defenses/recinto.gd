@@ -13,12 +13,21 @@ func blocks(enemy) -> bool:
 	return is_alive() and not enemy.flying
 
 
-func _draw() -> void:
-	var wood := Color("7a5530") if is_alive() else Color("3a2a18")
-	var h := 60.0 if is_alive() else 15.0  # distrutto: resta solo un moncone
-	for px in [-14, 0, 14]:
-		draw_rect(Rect2(px - 3, -h, 6, h), wood)
-	if is_alive():
-		draw_rect(Rect2(-17, -45, 34, 5), wood)
-		draw_rect(Rect2(-17, -22, 34, 5), wood)
-	super._draw()
+func _draw_defense() -> void:
+	if not is_alive():
+		# Distrutto: restano i monconi.
+		for px in [-15, 0, 12]:
+			block(Rect2(px - 3, -12 - absf(px) * 0.3, 6, 12 + absf(px) * 0.3), Color("4a3420"))
+		return
+	var wood := Color("7a5530")
+	var damaged := hp < max_hp * 0.5
+	for px in [-15, 0, 15]:
+		block(Rect2(px - 3, -63, 6, 63), wood)
+		block(Rect2(px - 3, -66, 6, 3), Color("9a7040"))   # punta
+	block(Rect2(-18, -48, 36, 6), Color("8a6538"))
+	# Mezzo rotto: l'asse bassa è storta.
+	if damaged:
+		draw_line(Vector2(-18, -18), Vector2(18, -30), K, 8)
+		draw_line(Vector2(-18, -18), Vector2(18, -30), Color("8a6538"), 5)
+	else:
+		block(Rect2(-18, -24, 36, 6), Color("8a6538"))

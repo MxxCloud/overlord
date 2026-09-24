@@ -8,6 +8,8 @@
 extends Node2D
 
 const MolotovScript := preload("res://scripts/molotov.gd")
+const PixelArt := preload("res://scripts/pixel_art.gd")
+const HAMMER_TIME := 0.35   # durata di un colpo di martello
 
 @export var speed := 90.0
 @export var max_hp := 3.0
@@ -16,6 +18,7 @@ const MolotovScript := preload("res://scripts/molotov.gd")
 
 var nome := "Abitante"
 var color := Color("a07850")
+var hair := Color("5a3a1f")
 # Stati: libero, va_cantiere, costruisce, va_postazione, postazione, ferito
 var state := "libero"
 var hp := 3.0
@@ -24,6 +27,9 @@ var slot = null                       # cantiere su cui lavora
 var post = null                       # postazione che presidia
 var _throw_cd := 0.0
 var _anim := 0.0
+var _walking := false
+var _facing := 1
+var _throw_anim := 0.0
 
 
 func _ready() -> void:
@@ -90,6 +96,8 @@ func _physics_process(delta: float) -> void:
 	if GameState.finished:
 		return
 	_anim += delta
+	_walking = false
+	_throw_anim -= delta
 	match state:
 		"libero":
 			_move_to(home_x, delta, speed * 0.5)
@@ -97,7 +105,12 @@ func _physics_process(delta: float) -> void:
 			if _move_to(slot.position.x - 24, delta, speed):
 				state = "costruisce"
 		"costruisce":
-			pass  # il cantiere avanza da solo finché l'abitante è qui
+			# Il cantiere avanza da solo finché l'abitante è qui.
+			# A ogni colpo di martello: polvere e schegge.
+			_facing = 1
+			if fmod(_anim, HAMMER_TIME) < delta:
+				GameState.fx.dust(position + Vector2(24, 0), 2)
+				GameState.fx.splinters(position + Vector2(24, -12), 1)
 		"va_postazione":
 			if not is_instance_valid(post) or not post.is_alive():
 				post = null
@@ -133,6 +146,8 @@ func _throw(delta: float) -> void:
 	if target == null:
 		return
 	_throw_cd = throw_interval
+	_throw_anim = 0.25
+	_facing = 1
 	var molotov = MolotovScript.new()
 	molotov.position = center()
 	molotov.target = Vector2(target.position.x - target.speed * 0.4, GameState.GROUND_Y)
@@ -144,15 +159,30 @@ func _move_to(x: float, delta: float, spd: float) -> bool:
 	if abs(dx) < 4:
 		return true
 	position.x += sign(dx) * min(abs(dx), spd * delta)
+	_walking = true
+	_facing = 1 if dx > 0 else -1
 	return false
 
 
 func _draw() -> void:
-	var body := Color("777777") if is_injured() else color
-	draw_rect(Rect2(-7, -18, 14, 18), body)                       # corpo
-	draw_rect(Rect2(-5, -30, 10, 11), Color("e0b48a"))            # testa
+	# Sprite in pixel art con i colori di questo abitante.
+	var frame := "villager_1"
+	if _walking and int(_anim / 0.15) % 2 == 1:
+		frame = "villager_2"
+	var colors := {"c": color, "C": color.darkened(0.35), "h": hair}
+	var tint := Color(0.55, 0.55, 0.6) if is_injured() else Color.WHITE
+	PixelArt.draw(self, PixelArt.texture(frame, colors), _facing < 0, Vector2.ZERO, tint)
+	var k := Color("1b1418")
 	if state == "costruisce":
 		# Martello che batte.
-		var up := sin(_anim * 12.0) > 0
-		draw_line(Vector2(6, -14), Vector2(16, -24 if up else -10), Color("8a6a40"), 3)
-	draw_string(ThemeDB.fallback_font, Vector2(-40, -36), nome, HORIZONTAL_ALIGNMENT_CENTER, 80, 11, Color("f0e0c0"))
+		var up := fmod(_anim, HAMMER_TIME) < HAMMER_TIME * 0.5
+		var tip := Vector2(18, -39) if up else Vector2(24, -15)
+		draw_line(Vector2(6, -21), tip, k, 4)
+		draw_line(Vector2(6, -21), tip, Color("8a6a40"), 2)
+		draw_rect(Rect2(tip - Vector2(4, 4), Vector2(8, 8)), Color("6a6a70"))
+	elif _throw_anim > 0:
+		# Braccio alzato mentre lancia.
+		draw_line(Vector2(3, -24), Vector2(12, -45), k, 4)
+	# Il nome si vede solo quando sta facendo qualcosa (a casa si accavallerebbero).
+	if state != "libero" or absf(position.x - home_x) > 10:
+		draw_string(ThemeDB.fallback_font, Vector2(-44, -42), nome, HORIZONTAL_ALIGNMENT_CENTER, 88, 11, Color("f0e0c0"))
