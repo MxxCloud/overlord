@@ -2,7 +2,7 @@
 
 Prototipo giocabile di **una notte d'assedio**, per capire se il cuore del gioco è divertente. Il design completo è in [`docs/GDD.md`](docs/GDD.md).
 
-La grafica è in pixel art provvisoria, disegnata direttamente nel codice. Qui conta soprattutto *come si gioca*, ma anche come "si sentono" i colpi.
+La grafica usa pixel art CC0 di Pixel-boy (vedi `assets/CREDITS.md`), ricolorata per la notte. È una base provvisoria: il codice è pronto per sostituirla con sprite su misura.
 
 ---
 
@@ -70,7 +70,8 @@ Tutti i numeri importanti sono all'inizio dei file, con commenti in italiano:
 - **Cane** (velocità, stordimento, attesa tra ordini): `scripts/dog.gd`.
 - **Robot** (vita, velocità, battute): `scripts/enemies/servitore.gd`, `drone.gd`, `segugio.gd`.
 - **Difese** (resistenza): `scripts/defenses/*.gd`. Sentieri e posizione dei cantieri: `PATH_POINTS` e `SLOTS` in `scripts/map.gd`.
-- **Aspetto dei personaggi:** `scripts/pixel_art.gd`. Ogni sprite è disegnato con lettere, una per pixel: la tabella `PALETTE` dice che colore corrisponde a ogni lettera, e `.` è trasparente. Cambia le lettere e il personaggio cambia.
+- **Grafica:** gli sprite sono in `assets/` (pixel art CC0 di Pixel-boy, vedi `assets/CREDITS.md`). Per cambiare un personaggio basta sostituire il suo PNG, mantenendo la griglia di fotogrammi 16×16 (colonne = direzione giù/su/sinistra/destra, righe = passi). Le scelte e le ricolorazioni sono in `tools/import_assets.py`.
+- **Quanto è buia la notte:** `NIGHT` in `scripts/game_state.gd`.
 - **Intensità degli effetti:** i numeri passati a `GameState.shake(...)` (scossone) e `GameState.hitstop(...)` (fermo immagine) nei vari script.
 
 Dopo ogni modifica salva il file (Ctrl+S) e premi F5 per riprovare.
@@ -85,7 +86,7 @@ scripts/
   main.gd                crea il livello
   map.gd                 mappa vista dall'alto: sentieri, cantieri, villaggio, bosco
   scenery_fx.gd          parti animate dello sfondo (fari, antenne, mulino)
-  pixel_art.gd           sprite in pixel art, scritti come testo
+  sprites.gd             aiuti per disegnare gli sprite dai fogli in assets/
   fx.gd                  effetti: scintille, detriti, fumo, fuoco, lampi
   lights.gd              luci della notte (occhi dei robot, finestre, fuoco)
   player.gd              protagonista
@@ -99,7 +100,8 @@ scripts/
   enemies/               robot (enemy.gd è la base comune)
   defenses/              difese (defense.gd è la base comune)
 tests/smoke_test.gd      test automatico: gioca una partita accelerata
-tools/sprite_preview.gd  salva un'anteprima ingrandita di tutti gli sprite
+tools/import_assets.py   estrae e ricolora gli sprite dai pacchetti CC0
+assets/                  sprite PNG (e CREDITS.md con licenze e autori)
 docs/GDD.md              Game Design Document
 ```
 

@@ -21,19 +21,16 @@ func _hit_fx(pos: Vector2) -> void:
 
 func _draw_defense() -> void:
 	if not is_alive():
-		# A terra: latta e paglia sparse.
-		block(Rect2(-15, -6, 30, 6), Color("5a5f68"))
-		block(Rect2(9, -9, 12, 3), Color("c9a86a"))
+		# A terra: la croce spezzata e la paglia sparsa.
+		Sprites.draw_image(self, "decor/cross", Vector2.ZERO, Color(0.6, 0.55, 0.5), Rect2(0, 9, 11, 5))
+		block(Rect2(9, -6, 12, 3), Color("c9a86a"))
 		return
-	block(Rect2(-3, -72, 6, 72), Color("7a5530"))            # palo
-	block(Rect2(-24, -57, 48, 6), Color("7a5530"))           # braccia
-	block(Rect2(-12, -60, 24, 30), Color("8a8f98"))          # corpo di latta
-	draw_rect(Rect2(-12, -48, 24, 3), Color("6a6f78"))
-	block(Rect2(-9, -81, 18, 18), Color("c9a86a"))           # testa di paglia
-	draw_rect(Rect2(-6, -75, 3, 3), K)                       # occhi cuciti
-	draw_rect(Rect2(3, -75, 3, 3), K)
-	block(Rect2(-15, -87, 30, 6), Color("5a4020"))           # cappello
-	block(Rect2(-9, -96, 18, 9), Color("5a4020"))
-	# Paglia che esce dalle maniche.
-	draw_rect(Rect2(-30, -57, 6, 6), Color("d8b860"))
-	draw_rect(Rect2(24, -57, 6, 6), Color("d8b860"))
+	# Croce di legno (sprite) con giacca di latta, testa di paglia e cappello.
+	Sprites.draw_image(self, "decor/cross", Vector2(0, 0))
+	block(Rect2(-9, -30, 18, 15), Color("8a8f98"))            # giacca di latta
+	draw_rect(Rect2(-9, -24, 18, 3), Color("6a6f78"))
+	block(Rect2(-6, -45, 12, 12), Color("c9a86a"))            # testa di paglia
+	draw_rect(Rect2(-3, -40, 3, 3), K)                        # occhi cuciti
+	draw_rect(Rect2(3, -40, 3, 3), K)
+	block(Rect2(-12, -48, 24, 3), Color("5a4020"))            # tesa del cappello
+	block(Rect2(-6, -54, 12, 6), Color("5a4020"))

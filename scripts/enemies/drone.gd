@@ -18,8 +18,9 @@ func _init() -> void:
 	fly_height = 80.0
 	dps = 3.0
 	morale_damage = 6
-	sprite_frames = ["drone_1", "drone_2"]
-	frame_time = 0.06   # eliche velocissime
+	sheet = "characters/drone"
+	frame_time = 0.12
+	eye_height = 24.0
 	color = Color("454c58")
 	spawn_lines = [
 		"Sondaggio: quanto è soddisfatto della sua fattoria?",
@@ -50,5 +51,5 @@ func _update_extra(delta: float) -> void:
 			var bullet = BulletScript.new()
 			bullet.position = center()
 			bullet.velocity = (player.center() - center()).normalized() * 260.0
-			get_parent().add_child(bullet)
+			get_tree().current_scene.add_child(bullet)
 			GameState.fx.flash(center(), 18.0, Color(1.0, 0.2, 0.3, 0.8), 0.08)

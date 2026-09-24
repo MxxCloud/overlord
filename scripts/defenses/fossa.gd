@@ -35,8 +35,8 @@ func _on_destroyed() -> void:
 
 
 func _draw_defense() -> void:
-	draw_rect(Rect2(-width * 0.5 - 3, -3, width + 6, 30), K)
-	draw_rect(Rect2(-width * 0.5, 0, width, 24), Color("120c08"))
-	for px in [-18, -6, 6, 18]:
-		draw_rect(Rect2(px - 1.5, 6, 3, 18), Color("b08a50"))
-		draw_rect(Rect2(px - 1.5, 3, 3, 3), Color("d8c090"))
+	# Buca scavata nel sentiero, con i pali appuntiti sul fondo.
+	Sprites.draw_image(self, "decor/pit", Vector2(0, 21))
+	for px in [-12, 0, 12]:
+		draw_rect(Rect2(px - 1.5, -9, 3, 12), Color("6b4a2a"))
+		draw_rect(Rect2(px - 1.5, -12, 3, 3), Color("d8c090"))

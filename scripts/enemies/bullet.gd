@@ -41,5 +41,8 @@ func _draw() -> void:
 		var p: Vector2 = _trail[i] - position
 		var alpha := 0.5 * (1.0 - i / 6.0)
 		draw_rect(Rect2(p - Vector2(1.5, 1.5), Vector2(3, 3)), Color(1.0, 0.3, 0.4, alpha))
-	draw_rect(Rect2(-4.5, -4.5, 9, 9), Color("ff3355"))
-	draw_rect(Rect2(-1.5, -1.5, 3, 3), Color("ffd0dd"))
+	# Proiettile (sprite del pacchetto top-down), orientato nella direzione di volo.
+	var tex: Texture2D = preload("res://assets/fx/bullet.png")
+	draw_set_transform(Vector2.ZERO, velocity.angle(), Vector2(2, 2))
+	draw_texture(tex, -tex.get_size() * 0.5)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

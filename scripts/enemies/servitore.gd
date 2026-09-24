@@ -11,7 +11,8 @@ func _init() -> void:
 	dps = 2.0
 	morale_damage = 10
 	scrap_drop = 2
-	sprite_frames = ["servitore_1", "servitore_2"]
+	sheet = "characters/servitore"
+	frame_time = 0.22
 	color = Color("707a88")
 	spawn_lines = [
 		"La sua resistenza è importante per noi.",

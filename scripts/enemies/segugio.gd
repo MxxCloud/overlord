@@ -11,8 +11,9 @@ func _init() -> void:
 	dps = 3.0
 	morale_damage = 15
 	scrap_drop = 3
-	sprite_frames = ["segugio_1", "segugio_2"]
-	frame_time = 0.12   # zampe veloci
+	sheet = "characters/segugio"
+	frame_time = 0.1    # zampe veloci
+	eye_height = 22.0
 	color = Color("707a88")
 	spawn_lines = [
 		"TARGET: CANE. CLASSIFICAZIONE: ERRORE.",

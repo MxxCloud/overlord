@@ -15,6 +15,10 @@ signal player_hurt
 
 # Lo schermo è 1280x720. Sentieri, cancello e cantieri sono in map.gd.
 const SCREEN := Vector2(1280, 720)
+# Tinta notturna: tutto il "mondo" (terreno, personaggi, robot) viene
+# moltiplicato per questo colore, così la pixel art colorata diventa notte.
+# Effetti, luci e interfaccia NON vengono tinti (restano brillanti).
+const NIGHT := Color(0.36, 0.4, 0.66)
 
 @export var max_morale := 100
 @export var start_scrap := 30       # rottami a inizio notte, per le prime difese
@@ -27,6 +31,7 @@ var kills := 0            # robot distrutti, per il report finale
 # Riferimenti impostati da main.gd a ogni partita.
 var fx                    # il nodo degli effetti (fx.gd)
 var map                   # la mappa con i sentieri (map.gd)
+var world: Node2D         # il nodo che contiene tutte le entità (tinto di notte)
 var camera: Camera2D      # la camera, che facciamo tremare
 
 var _shake := 0.0
@@ -101,6 +106,12 @@ func end_game(won: bool) -> void:
 		return
 	finished = true
 	game_over.emit(won)
+
+
+# Colore "compensato" per testi e disegni dentro al mondo: dividendo per la
+# tinta notturna, dopo la tinta tornano del colore voluto.
+func untint(color: Color) -> Color:
+	return Color(color.r / NIGHT.r, color.g / NIGHT.g, color.b / NIGHT.b, color.a)
 
 
 # Crea un'etichetta di testo già leggibile (bianca con bordo nero).

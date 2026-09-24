@@ -8,7 +8,7 @@
 extends Node2D
 
 const MolotovScript := preload("res://scripts/molotov.gd")
-const PixelArt := preload("res://scripts/pixel_art.gd")
+const Sprites := preload("res://scripts/sprites.gd")
 const HAMMER_TIME := 0.35   # durata di un colpo di martello
 
 @export var speed := 90.0
@@ -17,8 +17,8 @@ const HAMMER_TIME := 0.35   # durata di un colpo di martello
 @export var throw_range := 360.0
 
 var nome := "Abitante"
-var color := Color("a07850")
-var hair := Color("5a3a1f")
+var sheet := "characters/gus"          # foglio di sprite (lo sceglie main.gd)
+var _look := Vector2.DOWN               # direzione in cui guarda
 # Stati: libero, va_cantiere, costruisce, va_postazione, postazione, ferito
 var state := "libero"
 var hp := 3.0
@@ -109,6 +109,7 @@ func _physics_process(delta: float) -> void:
 			# Il cantiere avanza da solo finché l'abitante è qui.
 			# A ogni colpo di martello: polvere e schegge.
 			_facing = 1
+			_look = Vector2.RIGHT
 			if fmod(_anim, HAMMER_TIME) < delta:
 				GameState.fx.dust(position + Vector2(24, 0), 2)
 				GameState.fx.splinters(position + Vector2(24, -12), 1)
@@ -150,11 +151,13 @@ func _throw(delta: float) -> void:
 	_throw_cd = throw_interval
 	_throw_anim = 0.25
 	_facing = 1 if target.position.x >= position.x else -1
+	_look = target.position - position
 	var molotov = MolotovScript.new()
 	molotov.position = center()
 	# Mira un po' più avanti lungo la direzione di marcia del robot.
 	molotov.target = target.position + target._dir * target.speed * 0.4
-	get_parent().add_child(molotov)
+	# Fuori dal "mondo": il fuoco non viene scurito dalla notte.
+	get_tree().current_scene.add_child(molotov)
 
 
 func _move_to(target: Vector2, delta: float, spd: float) -> bool:
@@ -163,6 +166,7 @@ func _move_to(target: Vector2, delta: float, spd: float) -> bool:
 		return true
 	position += diff.limit_length(spd * delta)
 	_walking = true
+	_look = diff
 	if absf(diff.x) > 1:
 		_facing = 1 if diff.x > 0 else -1
 	return false
@@ -170,12 +174,13 @@ func _move_to(target: Vector2, delta: float, spd: float) -> bool:
 
 func _draw() -> void:
 	# Sprite in pixel art con i colori di questo abitante.
-	var frame := "villager_1"
-	if _walking and int(_anim / 0.15) % 2 == 1:
-		frame = "villager_2"
-	var colors := {"c": color, "C": color.darkened(0.35), "h": hair}
+	if _elev == 0.0:
+		draw_rect(Rect2(-15, -4, 30, 6), Color(0, 0, 0, 0.3))   # ombra
+	var frame := 0
+	if _walking:
+		frame = int(_anim / 0.14) % Sprites.frame_count(sheet)
 	var tint := Color(0.55, 0.55, 0.6) if is_injured() else Color.WHITE
-	PixelArt.draw(self, PixelArt.texture(frame, colors), _facing < 0, Vector2(0, -_elev), tint)
+	Sprites.draw_frame(self, sheet, Sprites.dir_index(_look), frame, false, Vector2(0, -_elev), tint)
 	# Il resto (martello, braccio, nome) va disegnato alla stessa altezza.
 	draw_set_transform(Vector2(0, -_elev), 0.0, Vector2.ONE)
 	var k := Color("1b1418")
@@ -191,5 +196,5 @@ func _draw() -> void:
 		draw_line(Vector2(3, -24), Vector2(12, -45), k, 4)
 	# Il nome si vede solo quando sta facendo qualcosa (a casa si accavallerebbero).
 	if state != "libero" or position.distance_to(home) > 10:
-		draw_string(ThemeDB.fallback_font, Vector2(-44, -42), nome, HORIZONTAL_ALIGNMENT_CENTER, 88, 11, Color("f0e0c0"))
+		draw_string(ThemeDB.fallback_font, Vector2(-44, -52), nome, HORIZONTAL_ALIGNMENT_CENTER, 88, 11, GameState.untint(Color("f0e0c0")))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

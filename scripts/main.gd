@@ -18,33 +18,41 @@ const SceneryFxScript := preload("res://scripts/scenery_fx.gd")
 const FxScript := preload("res://scripts/fx.gd")
 const LightsScript := preload("res://scripts/lights.gd")
 
-# Abitanti disponibili all'inizio della notte: nome, vestiti, capelli.
+# Abitanti disponibili all'inizio della notte: nome e foglio di sprite.
 const VILLAGERS := [
-	["Nonna Edda", Color("9a5a8a"), Color("b8b8c0")],
-	["Gus", Color("5a6a7a"), Color("5a3a1f")],
-	["Padre Tobia", Color("2a2a30"), Color("3a3a3a")],
+	["Nonna Edda", "characters/edda"],
+	["Gus", "characters/gus"],
+	["Padre Tobia", "characters/tobia"],
 ]
 
 var player
 var dog
+var world: Node2D   # contiene tutte le entità: ordinate in profondità e tinte di notte
 
 
 # _ready() viene chiamata una volta, quando il nodo entra in scena.
 func _ready() -> void:
 	GameState.reset()
-	# Ordinamento in profondità: chi è più in basso sullo schermo viene
-	# disegnato davanti (vista dall'alto in 3/4).
-	y_sort_enabled = true
 
-	# Sfondo statico e sfondo animato (z_index negativo: stanno dietro a tutto).
-	# La mappa: terreno, sentieri, villaggio. La creiamo per prima perché
+	# Cielo e città (non tinti: sono già colori notturni).
+	add_child(SceneryFxScript.new())
+
+	# Il MONDO: un nodo che contiene terreno, personaggi, robot e difese.
+	# - y_sort_enabled: chi è più in basso sullo schermo viene disegnato
+	#   davanti (vista dall'alto in 3/4);
+	# - modulate: la tinta notturna colora tutto ciò che contiene.
+	world = Node2D.new()
+	world.y_sort_enabled = true
+	world.modulate = GameState.NIGHT
+	add_child(world)
+	GameState.world = world
+
+	# La mappa: terreno, sentieri, decorazioni. La creiamo per prima perché
 	# tutti gli altri la usano (GameState.map).
 	var map = MapScript.new()
-	add_child(map)
+	world.add_child(map)
 	GameState.map = map
-	var scenery = SceneryFxScript.new()
-	scenery.background = map
-	add_child(scenery)
+	map.spawn_props(world)
 
 	# Camera fissa al centro dello schermo: serve per farla tremare.
 	var camera := Camera2D.new()
@@ -63,25 +71,24 @@ func _ready() -> void:
 		var slot = SlotScript.new()
 		slot.position = pos
 		slot.main = self
-		add_child(slot)
+		world.add_child(slot)
 
 	for i in VILLAGERS.size():
 		var villager = VillagerScript.new()
 		villager.nome = VILLAGERS[i][0]
-		villager.color = VILLAGERS[i][1]
-		villager.hair = VILLAGERS[i][2]
-		villager.home = map.HOME + Vector2(-i * 30.0, 4.0 * i)
+		villager.sheet = VILLAGERS[i][1]
+		villager.home = map.HOME + Vector2(-i * 34.0, 6.0 * i)
 		villager.position = villager.home
-		add_child(villager)
+		world.add_child(villager)
 
 	player = PlayerScript.new()
-	player.position = Vector2(640, 280)
-	add_child(player)
+	player.position = Vector2(640, 290)
+	world.add_child(player)
 
 	dog = DogScript.new()
-	dog.position = Vector2(600, 290)
+	dog.position = Vector2(600, 300)
 	dog.player = player
-	add_child(dog)
+	world.add_child(dog)
 
 	var waves = WaveManagerScript.new()
 	add_child(waves)

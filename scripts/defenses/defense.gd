@@ -4,6 +4,7 @@
 extends Node2D
 
 const K := Color("1b1418")   # colore del contorno, come negli sprite
+const Sprites := preload("res://scripts/sprites.gd")
 
 var label_text := "Difesa"
 var max_hp := 20.0
@@ -19,6 +20,7 @@ func _ready() -> void:
 	path_progress = GameState.map.paths_near(position)
 	# Appena costruita: sbuffo di polvere.
 	GameState.fx.dust(position, 8)
+	GameState.fx.puff(position + Vector2(0, -20))
 	GameState.shake(2.0)
 
 
@@ -57,6 +59,7 @@ func _on_destroyed() -> void:
 	for i in 4:
 		_hit_fx(position + Vector2(randf_range(-width * 0.5, width * 0.5), -randf_range(10, 50)))
 	GameState.fx.dust(position, 10)
+	GameState.fx.puff(position + Vector2(0, -24))
 	GameState.shake(6.0)
 	GameState.spawn_text(position + Vector2(0, -80), "%s distrutto!" % label_text, Color("ff9966"))
 
@@ -97,4 +100,4 @@ func _draw() -> void:
 	var ratio := hp / max_hp
 	draw_rect(Rect2(-21, 9, 42, 6), K)
 	draw_rect(Rect2(-18, 10.5, 36 * ratio, 3), Color("ffaa33"))
-	draw_string(ThemeDB.fallback_font, Vector2(-60, 32), label_text, HORIZONTAL_ALIGNMENT_CENTER, 120, 11, Color("f0e0c0"))
+	draw_string(ThemeDB.fallback_font, Vector2(-60, 32), label_text, HORIZONTAL_ALIGNMENT_CENTER, 120, 11, GameState.untint(Color("f0e0c0")))

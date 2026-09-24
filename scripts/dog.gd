@@ -10,7 +10,7 @@
 #   (un robot stordito subisce danni doppi).
 extends Node2D
 
-const PixelArt := preload("res://scripts/pixel_art.gd")
+const Sprites := preload("res://scripts/sprites.gd")
 
 @export var speed := 320.0
 @export var max_hp := 4.0
@@ -40,7 +40,8 @@ func _ready() -> void:
 	add_to_group("dog")
 	hp = max_hp
 	_bark_label = GameState.make_label("", 14)
-	_bark_label.position = Vector2(-30, -60)
+	_bark_label.position = Vector2(-30, -62)
+	_bark_label.modulate = GameState.untint(Color.WHITE)   # leggibile anche di notte
 	_bark_label.visible = false
 	add_child(_bark_label)
 
@@ -178,12 +179,14 @@ func _move_to(target: Vector2, delta: float, spd: float) -> bool:
 
 
 func _draw() -> void:
-	# Sprite in pixel art (guarda a destra: lo specchiamo se va a sinistra).
-	var frame := "dog_1"
-	if _running and int(_run_time / 0.1) % 2 == 1:
-		frame = "dog_2"
+	draw_rect(Rect2(-15, -4, 30, 6), Color(0, 0, 0, 0.3))   # ombra
+	# Il foglio del cane ha 2 fotogrammi affiancati (colonne), visto di lato
+	# verso destra: lo specchiamo quando va a sinistra.
+	var frame := 0
+	if _running:
+		frame = int(_run_time / 0.1) % 2
 	var tint := Color(0.55, 0.55, 0.6) if is_injured() else Color.WHITE
 	var offset := Vector2(facing * 8.0 * sin(_lunge / 0.15 * PI), 0)
 	if is_injured():
 		offset.y = 3.0 * absf(sin(_run_time * 6.0))   # zoppica
-	PixelArt.draw(self, PixelArt.texture(frame), facing < 0, offset, tint)
+	Sprites.draw_frame(self, "characters/dog", frame, 0, false, offset, tint, facing < 0)

@@ -40,4 +40,4 @@ func _draw_defense() -> void:
 	# Cassa di molotov.
 	block(Rect2(-18, -height - 12, 12, 9), Color("5a8a3a"))
 	if villager == null:
-		draw_string(ThemeDB.fallback_font, Vector2(-40, -height - 24), "(vuota)", HORIZONTAL_ALIGNMENT_CENTER, 80, 11, Color("ffaaaa"))
+		draw_string(ThemeDB.fallback_font, Vector2(-40, -height - 24), "(vuota)", HORIZONTAL_ALIGNMENT_CENTER, 80, 11, GameState.untint(Color("ffaaaa")))

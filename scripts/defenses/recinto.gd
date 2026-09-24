@@ -14,20 +14,10 @@ func blocks(enemy) -> bool:
 
 
 func _draw_defense() -> void:
+	# Palizzata di tronchi (sprite del pacchetto medievale).
 	if not is_alive():
-		# Distrutto: restano i monconi.
-		for px in [-15, 0, 12]:
-			block(Rect2(px - 3, -12 - absf(px) * 0.3, 6, 12 + absf(px) * 0.3), Color("4a3420"))
+		# Distrutta: restano solo i monconi (la parte bassa, più scura).
+		Sprites.draw_image(self, "decor/palisade", Vector2.ZERO, Color(0.6, 0.55, 0.5), Rect2(0, 11, 32, 5))
 		return
-	var wood := Color("7a5530")
-	var damaged := hp < max_hp * 0.5
-	for px in [-15, 0, 15]:
-		block(Rect2(px - 3, -63, 6, 63), wood)
-		block(Rect2(px - 3, -66, 6, 3), Color("9a7040"))   # punta
-	block(Rect2(-18, -48, 36, 6), Color("8a6538"))
-	# Mezzo rotto: l'asse bassa è storta.
-	if damaged:
-		draw_line(Vector2(-18, -18), Vector2(18, -30), K, 8)
-		draw_line(Vector2(-18, -18), Vector2(18, -30), Color("8a6538"), 5)
-	else:
-		block(Rect2(-18, -24, 36, 6), Color("8a6538"))
+	var tint := Color(1, 0.85, 0.8) if hp < max_hp * 0.5 else Color.WHITE   # rovinata: più scura
+	Sprites.draw_image(self, "decor/palisade", Vector2.ZERO, tint)

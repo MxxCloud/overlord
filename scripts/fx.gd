@@ -13,6 +13,13 @@ const MAX_PARTICLES := 700 # limite di sicurezza
 var _particles: Array = []
 var _flashes: Array = []   # lampi circolari (esplosioni, spari)
 var _scorches: Array = []  # bruciature a terra che svaniscono lentamente
+var _anims: Array = []     # animazioni a fotogrammi (esplosioni, nuvole di fumo)
+
+# Animazioni disponibili: file, larghezza di un fotogramma, n. fotogrammi.
+const ANIMS := {
+	"explosion": ["res://assets/fx/explosion.png", 35, 7],
+	"puff": ["res://assets/fx/smoke.png", 32, 6],
+}
 
 
 func _ready() -> void:
@@ -87,10 +94,22 @@ func scorch(pos: Vector2) -> void:
 
 # Esplosione completa di un robot.
 func explosion(pos: Vector2, colors: Array) -> void:
+	anim("explosion", pos, 0.45)
 	flash(pos, 90.0, Color(1.0, 0.6, 0.2, 0.9), 0.15)
-	sparks(pos, 14)
-	debris(pos, colors, 12)
-	smoke(pos, 8)
+	sparks(pos, 12)
+	debris(pos, colors, 10)
+	smoke(pos, 4)
+
+
+# Nuvoletta di polvere (costruzioni, cadute, crolli).
+func puff(pos: Vector2) -> void:
+	anim("puff", pos, 0.4)
+
+
+# Avvia un'animazione a fotogrammi centrata in `pos`.
+func anim(name: String, pos: Vector2, duration: float) -> void:
+	var info: Array = ANIMS[name]
+	_anims.append({"tex": load(info[0]), "w": info[1], "n": info[2], "pos": pos, "t": 0.0, "dur": duration})
 
 
 # --- Motore delle particelle --------------------------------------------------
@@ -125,6 +144,10 @@ func _process(delta: float) -> void:
 	for s in _scorches:
 		s["life"] -= delta
 	_scorches = _scorches.filter(func(s): return s["life"] > 0)
+
+	for a in _anims:
+		a["t"] += delta
+	_anims = _anims.filter(func(a): return a["t"] < a["dur"])
 	queue_redraw()
 
 
@@ -154,6 +177,15 @@ func _draw() -> void:
 		# Allineiamo alla griglia di 3 pixel per restare "pixel art".
 		var pos: Vector2 = (p["pos"] / PX).floor() * PX
 		draw_rect(Rect2(pos - Vector2(size, size) * 0.5, Vector2(size, size)), color)
+
+	# Animazioni a fotogrammi, ingrandite x3 come il resto della pixel art.
+	for a in _anims:
+		var tex: Texture2D = a["tex"]
+		var w: int = a["w"]
+		var frame := mini(int(a["t"] / a["dur"] * a["n"]), a["n"] - 1)
+		var h := tex.get_height()
+		var size := Vector2(w, h) * 3.0
+		draw_texture_rect_region(tex, Rect2(a["pos"] - size * 0.5, size), Rect2(frame * w, 0, w, h))
 
 	# Nucleo del lampo: piccolo e bianco-giallo, il bagliore lo fa lights.gd.
 	for f in _flashes:

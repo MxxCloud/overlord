@@ -12,7 +12,7 @@
 # I robot volanti (droni) invece vanno dritti verso il cancello.
 extends Node2D
 
-const PixelArt := preload("res://scripts/pixel_art.gd")
+const Sprites := preload("res://scripts/sprites.gd")
 
 var kind := "robot"
 var max_hp := 3.0
@@ -23,9 +23,10 @@ var dps := 2.0               # danni al secondo contro difese, protagonista e ca
 var attack_interval := 0.8   # i colpi arrivano "a scatti", uno ogni tot secondi
 var morale_damage := 10      # morale perso se raggiunge il cancello
 var scrap_drop := 1          # rottami lasciati quando viene distrutto
-var sprite_frames: Array = []  # nomi degli sprite in pixel_art.gd (animazione)
-var frame_time := 0.25       # secondi per ogni fotogramma dell'animazione
-var size := Vector2(28, 40)
+var sheet := "characters/servitore"  # foglio di sprite (in assets/)
+var frame_time := 0.2        # secondi per ogni fotogramma dell'animazione
+var eye_height := 30.0       # altezza degli occhi (per il bagliore rosso)
+var size := Vector2(48, 48)
 var color := Color("707a88") # colore dei detriti quando esplode
 var fly_height := 0.0        # altezza da terra (solo i volanti): lo sprite è sollevato
 var path_id := 0             # su quale sentiero cammina (lo sceglie wave_manager.gd)
@@ -42,7 +43,6 @@ var _lunge := 0.0            # affondo in avanti quando colpisce
 var _attack_cd := 0.0
 var _anim_time := 0.0
 var _moving := false
-var _eye_offset := Vector2.ZERO
 var _lane := 0.0             # piccolo scostamento laterale, per non camminare in fila indiana
 var _dir := Vector2.UP       # direzione di marcia (per specchiare lo sprite)
 var _dying := false
@@ -54,9 +54,6 @@ func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("lights")   # gli occhi rossi brillano al buio
 	hp = max_hp
-	if sprite_frames.size() > 0:
-		size = PixelArt.screen_size(sprite_frames[0])
-		_eye_offset = PixelArt.pixel_offset(sprite_frames[0], "E")
 	_attack_cd = randf() * attack_interval
 	_lane = randf_range(-9.0, 9.0)
 	_update_position()
@@ -65,7 +62,7 @@ func _ready() -> void:
 	_bubble.size = Vector2(260, 20)
 	_bubble.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bubble.position = Vector2(-130, -size.y - 34)
-	_bubble.modulate = Color("9fd8ff")
+	_bubble.modulate = GameState.untint(Color("9fd8ff"))   # leggibile anche di notte
 	_bubble.visible = false
 	add_child(_bubble)
 	if spawn_lines.size() > 0 and randf() < 0.5:
@@ -289,21 +286,16 @@ func _update_extra(_delta: float) -> void:
 	pass
 
 
-# Nome dello sprite da disegnare adesso (animazione di camminata).
-func _current_frame() -> String:
-	var index := int(_anim_time / frame_time) % sprite_frames.size()
-	return sprite_frames[index]
-
-
-func _flipped() -> bool:
-	return _dir.x > 0.05   # gli sprite guardano a sinistra: se vado a destra li specchio
+# Fotogramma dell'animazione di camminata da disegnare adesso.
+func _current_frame() -> int:
+	return int(_anim_time / frame_time) % Sprites.frame_count(sheet)
 
 
 func get_lights() -> Array:
-	var eye := _eye_offset
-	if _flipped():
-		eye.x = -eye.x
-	eye.y -= fly_height
+	# Gli occhi guardano dove va il robot: il bagliore si sposta un po' in quella direzione.
+	var eye := Vector2(_dir.x * 6.0, -eye_height - fly_height)
+	if _dir.y < -0.5:
+		return []   # di spalle: occhi non visibili
 	if is_stunned():
 		return [[position + eye, 22.0, Color(0.4, 0.8, 1.0, 0.5 * randf())]]
 	return [[position + eye, 18.0, Color(1.0, 0.1, 0.1, 0.45)]]
@@ -316,9 +308,7 @@ func _draw() -> void:
 	var offset := _dir * 9.0 * sin(_lunge / 0.12 * PI) + Vector2(0, -fly_height)
 	if _hit_jitter > 0:
 		offset.x += randf_range(-3, 3)
-	var frame := _current_frame()
-	var tex := PixelArt.flash_texture(frame) if _hit_flash > 0 else PixelArt.texture(frame)
-	PixelArt.draw(self, tex, _flipped(), offset)
+	Sprites.draw_frame(self, sheet, Sprites.dir_index(_dir), _current_frame(), _hit_flash > 0, offset)
 
 	# Robot stordito: scariche elettriche intorno al corpo.
 	if is_stunned():
@@ -327,7 +317,7 @@ func _draw() -> void:
 			var points := PackedVector2Array([start])
 			for j in 4:
 				points.append(points[j] + Vector2(randf_range(-6, 6), size.y / 4.0))
-			draw_polyline(points, Color("9fe4ff"), 2)
+			draw_polyline(points, GameState.untint(Color("9fe4ff")), 2)
 
 	# Barra della vita (solo se è stato colpito).
 	if hp < max_hp:

@@ -109,4 +109,4 @@ func _spawn(tipo: String) -> void:
 	_next_path = 1 - _next_path
 	enemy.path_id = _next_path
 	enemy.position = GameState.map.path_point(_next_path, 0.0) + Vector2(randf_range(-20, 20), 0)
-	get_parent().add_child(enemy)
+	GameState.world.add_child(enemy)

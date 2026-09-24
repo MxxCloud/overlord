@@ -44,6 +44,7 @@ func _ready() -> void:
 	_prompt.size = Vector2(340, 40)
 	_prompt.position = Vector2(-170, -150)
 	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_prompt.modulate = GameState.untint(Color.WHITE)   # leggibile anche di notte
 	add_child(_prompt)
 
 
@@ -130,7 +131,7 @@ func _finish_job() -> void:
 		defense.position = position
 		# La difesa va nella scena principale (non dentro il cantiere), così
 		# la sua `position` è nelle stesse coordinate dei robot.
-		main.add_child(defense)
+		main.world.add_child(defense)
 	else:
 		defense.repair()
 	builder.release()

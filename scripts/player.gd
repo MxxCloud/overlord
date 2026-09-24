@@ -8,7 +8,7 @@
 # L'origine del nodo (position) corrisponde ai PIEDI del personaggio.
 extends Node2D
 
-const PixelArt := preload("res://scripts/pixel_art.gd")
+const Sprites := preload("res://scripts/sprites.gd")
 
 # @export rende la variabile modificabile dall'editor (pannello Ispettore).
 @export var speed := 170.0
@@ -28,6 +28,7 @@ var _flash_time := 0.0
 var _hurt_time := 0.0
 var _aim := Vector2.RIGHT
 var _walk_time := 0.0
+var _look := Vector2.DOWN   # direzione in cui guarda (per scegliere lo sprite)
 var _step_cd := 0.0
 var _pellets: Array = []  # punti d'arrivo dei pallini, per disegnarli un istante
 
@@ -47,7 +48,7 @@ func is_dead() -> bool:
 
 # Punto "centrale" del corpo, usato per mirare.
 func center() -> Vector2:
-	return position + Vector2(0, -30)
+	return position + Vector2(0, -24)
 
 
 func take_damage(amount: float) -> void:
@@ -74,6 +75,7 @@ func _physics_process(delta: float) -> void:
 	var dir := Input.get_vector("sinistra", "destra", "su", "giu")
 	_move_clamped(dir * speed * delta)
 	if dir != Vector2.ZERO:
+		_look = dir
 		if absf(dir.x) > 0.1:
 			facing = 1 if dir.x > 0 else -1
 		_walk_time += delta
@@ -109,6 +111,7 @@ func _shoot() -> void:
 	_shot_cd = shot_cooldown
 	_flash_time = 0.1
 	facing = 1 if _aim.x >= 0 else -1
+	_look = _aim
 	var origin := center()
 	var muzzle := origin + _aim * 34.0
 	# Feedback dello sparo: rinculo, scossone, fiammata, fumo, bossolo, pallini.
@@ -165,23 +168,21 @@ func get_lights() -> Array:
 
 
 func _draw() -> void:
-	# Sprite in pixel art: camminata a due fotogrammi, specchiato se va a sinistra.
-	var frame := "player_idle"
-	if _walk_time > 0 and int(_walk_time / 0.15) % 2 == 0:
-		frame = "player_walk"
-	var tex := PixelArt.flash_texture(frame) if _hurt_time > 0 else PixelArt.texture(frame)
-	PixelArt.draw(self, tex, facing < 0)
+	# Ombra ai piedi.
+	draw_rect(Rect2(-15, -4, 30, 6), Color(0, 0, 0, 0.3))
+	# Sprite dal foglio del protagonista: colonna = direzione, riga = passo.
+	var frame := 0
+	if _walk_time > 0:
+		frame = int(_walk_time / 0.13) % 4
+	Sprites.draw_frame(self, "characters/player", Sprites.dir_index(_look), frame, _hurt_time > 0)
 
-	# Doppietta: puntata verso il mouse quando spara, altrimenti a tracolla.
-	var gun_start := Vector2(0, -30)
+	# Doppietta: puntata verso il mouse quando spara.
+	var gun_start := Vector2(0, -24)
 	if _flash_time > 0:
 		draw_line(gun_start, gun_start + _aim * 34, Color("1b1418"), 6)
 		draw_line(gun_start, gun_start + _aim * 34, Color("6b4a2a"), 3)
-		# Pallini: linee sottili che partono dalla canna.
+		# Pallini: linee sottili che partono dalla canna (colori compensati per la notte).
 		var muzzle := gun_start + _aim * 34
 		for p in _pellets:
-			draw_line(muzzle, gun_start + p, Color(1.0, 0.9, 0.5, _flash_time * 8.0), 1)
-		draw_circle(muzzle, 6, Color("fff0a0"))
-	else:
-		draw_line(Vector2(-facing * 9, -48), Vector2(facing * 9, -21), Color("1b1418"), 5)
-		draw_line(Vector2(-facing * 9, -48), Vector2(facing * 9, -21), Color("6b4a2a"), 3)
+			draw_line(muzzle, gun_start + p, GameState.untint(Color(1.0, 0.9, 0.5, _flash_time * 8.0)), 1)
+		draw_circle(muzzle, 6, GameState.untint(Color("fff0a0")))

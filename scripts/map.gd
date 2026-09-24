@@ -1,47 +1,58 @@
 # La mappa della collina, vista dall'alto in 3/4.
 #
-# In alto c'è il villaggio (cascina, cancello "Quietville", mulino) con la
+# In alto c'è il villaggio (cascina, cancello "Quietville", palizzata) con la
 # città all'orizzonte. In basso c'è il bosco: da lì sbucano i robot, che
 # salgono lungo due SENTIERI fino al cancello.
 #
 # Questo script:
 # - definisce i sentieri (curve) e i punti importanti (cancello, cantieri, case);
-# - disegna il terreno UNA volta sola (Godot memorizza il disegno);
+# - disegna il terreno (erba e sentieri) UNA volta sola;
+# - piazza le decorazioni (alberi, rocce, case) come sprite ordinati in profondità;
 # - offre funzioni di aiuto ai robot per muoversi lungo i sentieri.
+# Cielo e città sono in scenery_fx.gd.
 extends Node2D
 
-const PX := 3
+const Sprites := preload("res://scripts/sprites.gd")
+const S := 3.0   # ingrandimento della pixel art
 
 # Punti dei due sentieri, dal bosco (fuori schermo in basso) al cancello.
 const PATH_POINTS := [
 	[Vector2(170, 790), Vector2(230, 660), Vector2(400, 610), Vector2(500, 530),
-		Vector2(380, 450), Vector2(320, 370), Vector2(430, 300), Vector2(570, 250), Vector2(640, 200)],
+		Vector2(380, 450), Vector2(320, 370), Vector2(430, 300), Vector2(570, 255), Vector2(640, 222)],
 	[Vector2(1110, 790), Vector2(1040, 660), Vector2(870, 615), Vector2(770, 530),
-		Vector2(900, 450), Vector2(960, 370), Vector2(850, 300), Vector2(710, 250), Vector2(640, 200)],
+		Vector2(900, 450), Vector2(960, 370), Vector2(850, 300), Vector2(710, 255), Vector2(640, 222)],
 ]
-const GATE := Vector2(640, 200)       # il cancello: se i robot ci arrivano, cala il morale
-const HOME := Vector2(560, 196)       # dove aspettano gli abitanti liberi
-const FARMHOUSE := Vector2(470, 186)  # cascina (piedi dell'edificio)
-const WINDMILL := Vector2(830, 186)
-const PLAY_AREA := Rect2(20, 205, 1240, 500)   # dove può camminare il protagonista
+const GATE := Vector2(640, 222)       # il cancello: se i robot ci arrivano, cala il morale
+const HOME := Vector2(585, 240)       # dove aspettano gli abitanti liberi
+const FARMHOUSE := Vector2(420, 206)  # cascina (base dell'edificio)
+const COTTAGE := Vector2(880, 206)
+const PLAY_AREA := Rect2(20, 225, 1240, 480)   # dove può camminare il protagonista
 
-# Cantieri: posizione. Quelli sul sentiero possono bloccare i robot;
-# quelli a lato (in mezzo alla collina) accettano solo postazioni.
+# Cantieri: quelli sul sentiero possono bloccare i robot; quelli a lato
+# (in mezzo alla collina) accettano solo postazioni.
 const SLOTS := [
 	Vector2(430, 598), Vector2(868, 604),          # bassi, sui sentieri
 	Vector2(338, 390), Vector2(944, 390),          # alti, sui sentieri
-	Vector2(640, 520), Vector2(640, 350),          # al centro, tra i due sentieri
+	Vector2(640, 520), Vector2(640, 355),          # al centro, tra i due sentieri
 ]
 
+# Colori del sentiero (presi dal tileset medievale).
+const DIRT := Color("b36c61")
+const DIRT_EDGE := Color("6e3c48")
+const DIRT_LIGHT := Color("c4806c")
+
 var curves: Array = []          # un oggetto Curve2D per sentiero
-# Usati da scenery_fx.gd per le animazioni.
-var antenna_tops: Array = []
-var spire_tops: Array = []
-var stars: Array = []
+var _rng := RandomNumberGenerator.new()
+# Timbri per disegnare i sentieri. Vanno CONSERVATI qui: se fossero variabili
+# locali di _draw() verrebbero cancellati subito e Godot li mostrerebbe bianchi.
+var _edge: ImageTexture
+var _dirt: ImageTexture
+var _spot: ImageTexture
 
 
 func _ready() -> void:
 	z_index = -20
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED   # per ripetere l'erba
 	add_to_group("lights")
 	for points in PATH_POINTS:
 		var curve := Curve2D.new()
@@ -53,6 +64,9 @@ func _ready() -> void:
 			var tangent: Vector2 = (next - prev) * 0.25
 			curve.add_point(points[i], -tangent, tangent)
 		curves.append(curve)
+	_edge = _blob(8, DIRT_EDGE)
+	_dirt = _blob(7, DIRT)
+	_spot = _blob(2, DIRT_LIGHT)
 
 
 # --- Aiuti per i sentieri -------------------------------------------------------
@@ -73,7 +87,6 @@ func path_direction(path_id: int, progress: float) -> Vector2:
 
 
 # Per ogni sentiero che passa vicino a `pos`, restituisce {id: progresso}.
-# Serve alle difese per sapere su quale tratto di sentiero si trovano.
 func paths_near(pos: Vector2, max_distance: float = 30.0) -> Dictionary:
 	var result := {}
 	for i in curves.size():
@@ -83,185 +96,128 @@ func paths_near(pos: Vector2, max_distance: float = 30.0) -> Dictionary:
 	return result
 
 
-# --- Disegno -------------------------------------------------------------------
+func distance_to_paths(pos: Vector2) -> float:
+	var best := INF
+	for curve in curves:
+		best = minf(best, curve.sample_baked(curve.get_closest_offset(pos)).distance_to(pos))
+	return best
 
-func _px(x: float, y: float, w: float, h: float, color: Color) -> void:
-	draw_rect(Rect2(floorf(x / PX) * PX, floorf(y / PX) * PX, maxf(PX, roundf(w / PX) * PX), maxf(PX, roundf(h / PX) * PX)), color)
+
+# --- Decorazioni (sprite ordinati in profondità) ------------------------------
+
+# Chiamata da main.gd: aggiunge alberi, rocce e case al nodo del mondo.
+func spawn_props(world: Node2D) -> void:
+	_rng.seed = 21
+	# Il villaggio: cascina, casetta, palizzata con il cancello, barili, pozzo.
+	world.add_child(Sprites.make_prop("decor/farmhouse", FARMHOUSE))
+	world.add_child(Sprites.make_prop("decor/cottage", COTTAGE))
+	world.add_child(Sprites.make_prop("decor/gate", GATE + Vector2(0, -6)))
+	for x in range(48, 1280, 96):
+		if absf(x - GATE.x) > 80:
+			world.add_child(Sprites.make_prop("decor/palisade", Vector2(x, 218)))
+	for p in [Vector2(520, 212), Vector2(545, 216), Vector2(755, 214)]:
+		world.add_child(Sprites.make_prop("decor/barrel", p))
+	world.add_child(Sprites.make_prop("decor/well", Vector2(1010, 214)))
+	world.add_child(Sprites.make_prop("decor/chapel", Vector2(210, 210)))
+	world.add_child(Sprites.make_prop("decor/house_b", Vector2(1150, 210)))
+
+	# Il bosco in basso e ai lati (lontano dai sentieri, che restano liberi).
+	var trees := ["decor/pine", "decor/pine", "decor/tree_round", "decor/tree_big"]
+	var placed := 0
+	var attempts := 0
+	while placed < 60 and attempts < 2000:
+		attempts += 1
+		var p := Vector2(_rng.randf_range(-20, 1300), _rng.randf_range(660, 780))
+		if _rng.randf() < 0.4:
+			var left := _rng.randf() < 0.5
+			p = Vector2(_rng.randf_range(-10, 70) if left else _rng.randf_range(1210, 1290), _rng.randf_range(300, 700))
+		if distance_to_paths(p) < 60 or _near_slot(p, 70):
+			continue
+		world.add_child(Sprites.make_prop(trees[_rng.randi() % trees.size()], p))
+		placed += 1
+
+	# Rocce, ceppi e cespugli sparsi sulla collina.
+	var small := ["decor/rock", "decor/rock_small", "decor/stump", "decor/bush", "decor/fern", "decor/dead_tree", "decor/pine_small"]
+	placed = 0
+	attempts = 0
+	while placed < 22 and attempts < 2000:
+		attempts += 1
+		var p := Vector2(_rng.randf_range(60, 1220), _rng.randf_range(270, 650))
+		if distance_to_paths(p) < 50 or _near_slot(p, 80) or p.distance_to(Vector2(640, 440)) < 90:
+			continue
+		world.add_child(Sprites.make_prop(small[_rng.randi() % small.size()], p))
+		placed += 1
+
+
+func _near_slot(p: Vector2, radius: float) -> bool:
+	for slot in SLOTS:
+		if p.distance_to(slot) < radius:
+			return true
+	return false
+
+
+# --- Disegno del terreno -------------------------------------------------------
+
+# Un "timbro" circolare in pixel art (usato per disegnare i sentieri).
+func _blob(radius: int, color: Color) -> ImageTexture:
+	var size := radius * 2 + 1
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	for y in size:
+		for x in size:
+			if Vector2(x - radius, y - radius).length() <= radius + 0.3:
+				img.set_pixel(x, y, color)
+	return ImageTexture.create_from_image(img)
+
+
+# Disegna un timbro allineato alla griglia dei pixel ingranditi.
+func _stamp(texture: Texture2D, pos: Vector2) -> void:
+	var half := (texture.get_width() - 1) * 0.5
+	var p := (pos / S).floor() - Vector2(half, half)
+	draw_texture_rect(texture, Rect2(p * S, texture.get_size() * S), false)
 
 
 func _draw() -> void:
-	_draw_sky_and_city()
-	_draw_grass()
+	_rng.seed = 5
+	# Prato: tessere d'erba ripetute, con qualche tessera più scura qua e là.
+	var grass_a := Sprites.tex("tiles/grass_a")
+	var grass_b := Sprites.tex("tiles/grass_b")
+	# Disegniamo in "pixel dell'arte" (x3) con una trasformazione di scala.
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(S, S))
+	draw_texture_rect(grass_a, Rect2(0, 40, 1280 / S, 600 / S), true)
+	for ty in range(0, 13):
+		for tx in range(0, 27):
+			if _rng.randf() < 0.3:
+				draw_texture_rect(grass_b, Rect2(tx * 16, 40 + ty * 16, 16, 16), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	# Sentieri: prima il bordo scuro, poi la terra, poi qualche chiazza chiara.
 	for curve in curves:
-		_draw_path(curve)
-	_draw_rocks()
-	_draw_forest()
-	_draw_village()
-	_draw_signpost(Vector2(1180, 700))
+		for p in curve.get_baked_points():
+			_stamp(_edge, p)
+	for curve in curves:
+		var points: PackedVector2Array = curve.get_baked_points()
+		for i in points.size():
+			_stamp(_dirt, points[i])
+			if i % 9 == 0:
+				_stamp(_spot, points[i] + Vector2(_rng.randf_range(-9, 9), _rng.randf_range(-6, 6)))
 
-
-func _draw_sky_and_city() -> void:
-	var gradient := Gradient.new()
-	gradient.set_color(0, Color("0a0a1a"))
-	gradient.set_color(1, Color("7a3a3a"))
-	gradient.add_point(0.5, Color("24183a"))
-	for y in range(0, 130, PX):
-		draw_rect(Rect2(0, y, 1280, PX), gradient.sample(y / 130.0))
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 3
-	stars.clear()
-	for i in 40:
-		var pos := Vector2(rng.randi_range(0, 426) * PX, rng.randi_range(0, 22) * PX)
-		var bright := rng.randf_range(0.25, 0.9)
-		stars.append([pos, bright])
-		draw_rect(Rect2(pos, Vector2(PX, PX)), Color(1, 1, 0.9, bright))
-	# La megalopoli all'orizzonte, dietro al villaggio.
-	antenna_tops.clear()
-	spire_tops.clear()
-	rng.seed = 11
-	var x := 0.0
-	while x < 1280:
-		var w := float(rng.randi_range(5, 12) * PX)
-		var peak := 70.0 * exp(-pow((x - 900.0) / 180.0, 2)) + 40.0 * exp(-pow((x - 300.0) / 120.0, 2))
-		var h := rng.randf_range(12, 40) + peak * rng.randf_range(0.6, 1.0)
-		var top := 130.0 - h
-		_px(x, top, w, h + 6, Color("14111f"))
-		for wy in range(int(top) + 6, 128, 9):
-			if rng.randf() < 0.15:
-				_px(x + 3 + rng.randi_range(0, int(w / 9)) * 6, wy, PX, PX, Color("4aa8ff") if rng.randf() < 0.7 else Color("f2c96a"))
-		if h > 70:
-			_px(x + floorf(w / 6.0) * PX, top + 6, PX, h * 0.5, Color("3aa0ff"))
-			antenna_tops.append(Vector2(x + floorf(w / 6.0) * PX, top - 9))
-			_px(x + floorf(w / 6.0) * PX, top - 9, PX, 9, Color("14111f"))
-			if h > 95:
-				spire_tops.append(Vector2(x + w * 0.5, top - 9))
-		x += w + rng.randi_range(0, 2) * PX
-	# Nebbia sul bordo della collina.
-	for i in 5:
-		draw_rect(Rect2(0, 118 + i * 3, 1280, 3), Color(0.5, 0.4, 0.6, 0.08 + i * 0.03))
-
-
-func _draw_grass() -> void:
-	# Prato: più scuro verso il bosco in basso.
-	for y in range(130, 720, PX):
-		var t := (y - 130.0) / 590.0
-		draw_rect(Rect2(0, y, 1280, PX), Color("2c4222").lerp(Color("18261a"), t))
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 5
-	for i in 900:
-		var p := Vector2(rng.randi_range(0, 426) * PX, rng.randi_range(44, 239) * PX)
-		var c := Color("3a5a2a") if rng.randf() < 0.5 else Color("1a2a15")
-		_px(p.x, p.y, PX, PX, c)
-		if rng.randf() < 0.15:
-			_px(p.x, p.y - PX, PX, PX, Color("4d6b34"))   # filo d'erba
-
-
-func _draw_path(curve: Curve2D) -> void:
-	var points := curve.get_baked_points()
-	draw_polyline(points, Color("1b1418"), 46.0)
-	draw_polyline(points, Color("4a3a28"), 40.0)
-	draw_polyline(points, Color("5a4630"), 26.0)
-	# Sassolini lungo il sentiero.
-	var rng := RandomNumberGenerator.new()
-	rng.seed = points.size()
-	for i in range(0, points.size(), 5):
-		var p: Vector2 = points[i] + Vector2(rng.randf_range(-16, 16), rng.randf_range(-12, 12))
-		_px(p.x, p.y, PX, PX, Color("6a5640") if rng.randf() < 0.6 else Color("3a2c1e"))
-
-
-func _draw_rocks() -> void:
-	var k := Color("1b1418")
-	for p in [Vector2(120, 420), Vector2(1150, 470), Vector2(560, 640), Vector2(720, 420), Vector2(250, 250), Vector2(1060, 260)]:
-		_px(p.x - 15, p.y - 12, 30, 15, k)
-		_px(p.x - 12, p.y - 9, 24, 9, Color("5a5f68"))
-		_px(p.x - 9, p.y - 9, 12, 3, Color("7a8088"))
-
-
-# Il bosco in basso e ai lati: chiome tonde in pixel, con dei varchi per i sentieri.
-func _draw_forest() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 21
-	var trees := []
-	for i in 70:
-		var p := Vector2(rng.randf_range(-20, 1300), rng.randf_range(650, 760))
-		if rng.randf() < 0.35:
-			p = Vector2(rng.randf_range(-20, 90) if rng.randf() < 0.5 else rng.randf_range(1190, 1300), rng.randf_range(260, 700))
-		var near_path := false
-		for curve in curves:
-			if curve.sample_baked(curve.get_closest_offset(p)).distance_to(p) < 55:
-				near_path = true
-		if not near_path:
-			trees.append(p)
-	trees.sort_custom(func(a, b): return a.y < b.y)
-	for p in trees:
-		_draw_tree(p, rng.randf_range(0.8, 1.3))
-
-
-func _draw_tree(p: Vector2, s: float) -> void:
-	var k := Color("1b1418")
-	_px(p.x - 4, p.y - 18 * s, 9, 18 * s, k)
-	_px(p.x - 2, p.y - 16 * s, 4, 16 * s, Color("3a2a1a"))
-	var r := 22.0 * s
-	for yy in range(int(-r), int(r), PX):
-		for xx in range(int(-r), int(r), PX):
-			var d := Vector2(xx, yy * 1.2).length()
-			if d > r:
-				continue
-			var c := Color("1c3320")
-			if d > r - 4:
-				c = k
-			elif xx + yy < -r * 0.4:
-				c = Color("2a4a2c")
-			_px(p.x + xx, p.y - 30 * s + yy, PX, PX, c)
-
-
-func _draw_village() -> void:
-	var k := Color("1b1418")
-	# Recinzione del villaggio lungo il ciglio, con il cancello in mezzo.
-	for x in range(30, 1250, 24):
-		if absf(x - GATE.x) < 40:
+	# Fiori e ciuffi d'erba (piatti, sotto a tutto il resto).
+	var decals := ["decor/tuft", "decor/tuft", "decor/weed", "decor/flower", "decor/flowers"]
+	for i in 90:
+		var p := Vector2(_rng.randf_range(0, 1280), _rng.randf_range(235, 700))
+		if distance_to_paths(p) < 34:
 			continue
-		_px(x, 170, 6, 24, k)
-		_px(x + 1, 172, 3, 21, Color("6b4a2a"))
-	_px(30, 176, 1220, 6, k)
-	_px(30, 177, 1220, 3, Color("8a6538"))
-	# Il cancello.
-	for px in [GATE.x - 36, GATE.x + 30]:
-		_px(px - 3, 150, 12, 48, k)
-		_px(px, 153, 6, 45, Color("6b4a2a"))
-	_px(GATE.x - 51, 132, 102, 24, k)
-	_px(GATE.x - 48, 135, 96, 18, Color("5a3d22"))
-	draw_string(ThemeDB.fallback_font, Vector2(GATE.x - 48, 149), "Quietville", HORIZONTAL_ALIGNMENT_CENTER, 96, 12, Color("f0dcb0"))
-	# Cascina in pietra.
-	var f := FARMHOUSE
-	_px(f.x - 48, f.y - 54, 96, 54, k)
-	_px(f.x - 45, f.y - 51, 90, 51, Color("6e6358"))
-	for row in 8:
-		for col in 5:
-			_px(f.x - 45 + (row % 2) * 9 + col * 18, f.y - 48 + row * 6, 12, 3, Color("7d7266") if (row + col) % 3 else Color("5f564c"))
-	for i in 10:
-		_px(f.x - 54 + i * 4, f.y - 57 - i * 3, 108 - i * 8, PX, Color("7e3326") if i % 2 else Color("6b2a20"))
-	_px(f.x + 18, f.y - 96, 12, 24, k)
-	_px(f.x + 21, f.y - 93, 6, 21, Color("5b5249"))
-	for wx in [f.x - 33, f.x + 15]:
-		_px(wx - 3, f.y - 42, 21, 18, k)
-		_px(wx, f.y - 39, 15, 12, Color("ffcc55"))
-	_px(f.x - 9, f.y - 27, 18, 27, k)
-	_px(f.x - 6, f.y - 24, 12, 24, Color("4a3320"))
+		Sprites.draw_image(self, decals[_rng.randi() % decals.size()], p)
+
+	# Il bosco in basso è più buio: velo scuro sfumato.
+	for i in 12:
+		draw_rect(Rect2(0, 600 + i * 10, 1280, 10), Color(0.02, 0.03, 0.05, 0.03 * i))
 
 
-func _draw_signpost(pos: Vector2) -> void:
-	var k := Color("1b1418")
-	_px(pos.x - 3, pos.y - 45, 9, 45, k)
-	_px(pos.x, pos.y - 42, 3, 42, Color("6b4a2a"))
-	_px(pos.x - 39, pos.y - 51, 84, 21, k)
-	_px(pos.x - 36, pos.y - 48, 78, 15, Color("7a5530"))
-	draw_string(ThemeDB.fallback_font, Vector2(pos.x - 36, pos.y - 36), "‹ Città 30 km", HORIZONTAL_ALIGNMENT_CENTER, 78, 10, Color("f0dcb0"))
-
-
-# Luce calda dalle finestre della cascina.
+# Luce calda dalle finestre della cascina e della casetta.
 func get_lights() -> Array:
 	return [
-		[FARMHOUSE + Vector2(-26, -33), 45.0, Color(1.0, 0.7, 0.3, 0.35)],
-		[FARMHOUSE + Vector2(22, -33), 45.0, Color(1.0, 0.7, 0.3, 0.35)],
+		[FARMHOUSE + Vector2(-60, -40), 50.0, Color(1.0, 0.7, 0.3, 0.4)],
+		[FARMHOUSE + Vector2(60, -40), 50.0, Color(1.0, 0.7, 0.3, 0.4)],
+		[COTTAGE + Vector2(0, -40), 55.0, Color(1.0, 0.7, 0.3, 0.35)],
 	]
