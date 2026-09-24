@@ -52,4 +52,5 @@ func _update_extra(delta: float) -> void:
 			bullet.position = center()
 			bullet.velocity = (player.center() - center()).normalized() * 260.0
 			get_tree().current_scene.add_child(bullet)
+			Audio.play("drone_shot", -8.0)
 			GameState.fx.flash(center(), 18.0, Color(1.0, 0.2, 0.3, 0.8), 0.08)

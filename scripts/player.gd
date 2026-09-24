@@ -60,6 +60,7 @@ func take_damage(amount: float) -> void:
 	_move_clamped(Vector2(0, -10))   # spinto indietro, verso il villaggio
 	GameState.shake(4.0)
 	GameState.player_hurt.emit()
+	Audio.play("hurt")
 	if hp <= 0:
 		GameState.end_game(false)
 
@@ -104,11 +105,13 @@ func _physics_process(delta: float) -> void:
 func _shoot() -> void:
 	if shells <= 0:
 		GameState.spawn_text(center() + Vector2(0, -40), "Niente cartucce!", Color("ffaaaa"))
+		Audio.play("no_ammo")
 		return
 	if _shot_cd > 0:
 		return
 	shells -= 1
 	_shot_cd = shot_cooldown
+	Audio.play("shoot", 0.0, 0.05)
 	_flash_time = 0.1
 	facing = 1 if _aim.x >= 0 else -1
 	_look = _aim

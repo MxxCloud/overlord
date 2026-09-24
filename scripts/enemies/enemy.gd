@@ -129,6 +129,7 @@ func take_damage(amount: float) -> void:
 	if not trapped:
 		_push_back(4.0)
 	GameState.shake(1.5)
+	Audio.play("hit", -6.0)
 	if hp <= 0:
 		_die()
 
@@ -140,7 +141,9 @@ func _die() -> void:
 	GameState.fx.explosion(center(), [color, Color("454c58"), Color("1b1418")])
 	GameState.shake(5.0)
 	GameState.hitstop(0.05)
+	Audio.play("explosion")
 	if death_lines.size() > 0:
+		Audio.play("robot_voice", -8.0, 0.1, 0.6)   # lamento metallico, più grave
 		GameState.spawn_text(center() + Vector2(0, -30), death_lines.pick_random(), Color("9fd8ff"))
 	# I rottami schizzano fuori e cadono a terra (vedi scrap.gd).
 	for i in scrap_drop:
@@ -244,6 +247,7 @@ func _reach_gate() -> void:
 	GameState.fx.flash(center(), 60.0, Color(1.0, 0.2, 0.2, 0.8), 0.2)
 	GameState.fx.splinters(center(), 6)
 	GameState.shake(6.0)
+	Audio.play("gate")
 	_dying = true
 	queue_free()
 

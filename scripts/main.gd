@@ -33,6 +33,8 @@ var world: Node2D   # contiene tutte le entità: ordinate in profondità e tinte
 # _ready() viene chiamata una volta, quando il nodo entra in scena.
 func _ready() -> void:
 	GameState.reset()
+	Audio.start_ambience()
+	Audio.music("music_calm")
 
 	# Cielo e città (non tinti: sono già colori notturni).
 	add_child(SceneryFxScript.new())

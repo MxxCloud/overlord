@@ -139,6 +139,7 @@ func _bite(enemy) -> void:
 	GameState.fx.electric(enemy.center(), 12)
 	GameState.fx.flash(enemy.center(), 30.0, Color(0.5, 0.85, 1.0, 0.9), 0.1)
 	GameState.shake(2.5)
+	Audio.play("zap", -4.0)
 	bark("GRRR!")
 
 

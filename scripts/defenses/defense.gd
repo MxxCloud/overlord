@@ -43,6 +43,7 @@ func take_damage(amount: float) -> void:
 		return
 	hp = max(0.0, hp - amount)
 	_jitter = 0.15
+	Audio.play("hit", -12.0, 0.15, 0.6)   # colpo sordo sul legno
 	_hit_fx(position + Vector2(randf_range(-width * 0.5, width * 0.5), -randf_range(15, 45)))
 	if hp <= 0:
 		_on_destroyed()
@@ -61,6 +62,7 @@ func _on_destroyed() -> void:
 	GameState.fx.dust(position, 10)
 	GameState.fx.puff(position + Vector2(0, -24))
 	GameState.shake(6.0)
+	Audio.play("crumble", 0.0, 0.1, 0.7)
 	GameState.spawn_text(position + Vector2(0, -80), "%s distrutto!" % label_text, Color("ff9966"))
 
 

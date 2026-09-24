@@ -183,5 +183,49 @@ def main():
     save(load(os.path.join(SHOOTER, "weapons", "shoot", "6.png")), "fx/bullet.png")
 
 
+# Suoni e musiche scelti (stessi pacchetti CC0): nome in assets/audio -> file originale.
+AUDIO = {
+    "shoot": "western-fps-2d/sounds/gun-1.ogg",
+    "no_ammo": "western-fps-2d/sounds/no-ammo.ogg",
+    "hit_1": "western-fps-2d/sounds/impact-1.ogg",
+    "hit_2": "western-fps-2d/sounds/impact-2.ogg",
+    "explosion_1": "top-down-shooter/sounds/explosion-1.wav",
+    "explosion_2": "top-down-shooter/sounds/explosion-2.wav",
+    "explosion_3": "top-down-shooter/sounds/explosion-3.wav",
+    "glass_1": "western-fps-2d/sounds/glass-breaking-1.ogg",
+    "glass_2": "western-fps-2d/sounds/glass-breaking-2.ogg",
+    "whoosh": "medieval-fantasy/sounds/woosh-1.wav",
+    "crumble": "top-down-shooter/sounds/shoot-destroy.wav",
+    "hammer": "top-down-shooter/sounds/window-hit-1.wav",
+    "scrap_1": "ninja-adventure/sounds/gold-1.ogg",
+    "scrap_2": "ninja-adventure/sounds/gold-2.ogg",
+    "drone_shot": "top-down-shooter/sounds/shoot-3.wav",
+    "zap": "top-down-shooter/sounds/cure.wav",
+    "hurt": "top-down-shooter/sounds/death.wav",
+    "gate": "ninja-adventure/sounds/alert.ogg",
+    "wave": "top-down-shooter/sounds/alert.wav",
+    "robot_voice_1": "medieval-fantasy/sounds/monster-1.wav",
+    "robot_voice_2": "medieval-fantasy/sounds/monster-2.wav",
+    "raven_1": "western-fps-2d/sounds/raven-1.ogg",
+    "raven_2": "western-fps-2d/sounds/raven-2.ogg",
+    "victory": "medieval-fantasy/sounds/victory-1.wav",
+    "defeat": "ninja-adventure/sounds/game-over.ogg",
+    "ambience": "medieval-fantasy/sounds/forest-ambience.wav",
+    "music_calm": "western-fps-2d/musics/theme-1.ogg",
+    "music_siege": "top-down-shooter/music/theme-1.ogg",
+}
+
+
+def copy_audio():
+    import shutil
+    print("Audio")
+    os.makedirs(os.path.join(OUT, "audio"), exist_ok=True)
+    for name, src in AUDIO.items():
+        ext = os.path.splitext(src)[1]
+        shutil.copy(os.path.join(PACK, src), os.path.join(OUT, "audio", name + ext))
+        print("  ", "audio/" + name + ext)
+
+
 if __name__ == "__main__":
     main()
+    copy_audio()

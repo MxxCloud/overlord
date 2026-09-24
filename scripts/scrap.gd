@@ -25,6 +25,7 @@ func collect() -> void:
 	if not _landed or is_queued_for_deletion():
 		return
 	GameState.add_scrap(value)
+	Audio.play("scrap", -8.0)
 	GameState.fx.sparks(position + Vector2(0, -6), 5, Color("e8e8f0"))
 	GameState.spawn_text(position + Vector2(0, -20), "+%d rottame" % value, Color("dddddd"))
 	queue_free()

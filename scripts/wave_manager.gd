@@ -84,6 +84,7 @@ func _physics_process(delta: float) -> void:
 	# Onda finita quando non restano robot da far entrare né in campo.
 	if _queue.is_empty() and get_tree().get_nodes_in_group("enemies").is_empty():
 		spawning = false
+		Audio.music("music_calm")
 		if current >= waves.size() - 1:
 			all_waves_cleared.emit()
 		else:
@@ -101,6 +102,8 @@ func _start_next_wave() -> void:
 	_time = 0.0
 	spawning = true
 	wave_started.emit(current + 1)
+	Audio.play("wave")
+	Audio.music("music_siege")
 
 
 func _spawn(tipo: String) -> void:

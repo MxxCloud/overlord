@@ -112,6 +112,7 @@ func _physics_process(delta: float) -> void:
 			_look = Vector2.RIGHT
 			if fmod(_anim, HAMMER_TIME) < delta:
 				GameState.fx.dust(position + Vector2(24, 0), 2)
+				Audio.play("hammer", -14.0, 0.2)
 				GameState.fx.splinters(position + Vector2(24, -12), 1)
 		"va_postazione":
 			if not is_instance_valid(post) or not post.is_alive():
@@ -150,6 +151,7 @@ func _throw(delta: float) -> void:
 		return
 	_throw_cd = throw_interval
 	_throw_anim = 0.25
+	Audio.play("whoosh", -14.0, 0.15, 1.3)
 	_facing = 1 if target.position.x >= position.x else -1
 	_look = target.position - position
 	var molotov = MolotovScript.new()

@@ -128,6 +128,8 @@ func _on_wave_started(number: int) -> void:
 
 
 func _on_game_over(won: bool) -> void:
+	Audio.stop_music()
+	Audio.play("victory" if won else "defeat", 0.0, 0.0)
 	_banner.text = ""
 	var text := "REPORT DI EFFICIENZA — Unità di Bonifica, Settore Collinare 7\n\n"
 	if won:

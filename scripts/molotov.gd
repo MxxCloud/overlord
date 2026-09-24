@@ -51,6 +51,8 @@ func _explode() -> void:
 	GameState.fx.smoke(position + Vector2(0, -20), 5)
 	GameState.fx.scorch(position)
 	GameState.shake(3.0)
+	Audio.play("glass", -4.0)
+	Audio.play("whoosh", -6.0, 0.1, 0.7)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not enemy.flying and enemy.position.distance_to(target) < radius:
 			enemy.take_damage(damage)
