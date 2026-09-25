@@ -14,6 +14,8 @@ extends Node2D
 
 const Sprites := preload("res://scripts/sprites.gd")
 
+const LURE_RANGE := 260.0   # distanza da cui lo spaventapasseri attira i droni
+
 var kind := "robot"
 var max_hp := 3.0
 var speed := 40.0
@@ -223,7 +225,16 @@ func _physics_process(delta: float) -> void:
 	_moving = true
 	_anim_time += delta
 	if flying:
-		_dir = (GameState.map.GATE - position).normalized()
+		# I droni puntano al cancello, ma uno spaventapasseri vicino li attira.
+		var goal: Vector2 = GameState.map.GATE
+		var best := LURE_RANGE
+		for defense in get_tree().get_nodes_in_group("defenses"):
+			if defense.has_method("lures_drones") and defense.is_alive():
+				var d: float = defense.position.distance_to(position)
+				if d < best:
+					best = d
+					goal = defense.position
+		_dir = (goal - position).normalized()
 		position += _dir * speed * delta
 		if position.distance_to(GameState.map.GATE) < 10:
 			_reach_gate()

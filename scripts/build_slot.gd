@@ -19,8 +19,10 @@ const TYPES := {
 		"script": preload("res://scripts/defenses/spaventapasseri.gd")},
 	"postazione": {"nome": "Postazione", "costo": 10, "tempo": 6.0,
 		"script": preload("res://scripts/defenses/postazione.gd")},
+	"fionda": {"nome": "Fionda", "costo": 8, "tempo": 4.0,
+		"script": preload("res://scripts/defenses/fionda.gd")},
 }
-const ORDER := ["recinto", "fossa", "spaventapasseri", "postazione"]
+const ORDER := ["recinto", "fossa", "spaventapasseri", "postazione", "fionda"]
 
 @export var repair_cost := 3
 @export var repair_time := 3.0
@@ -54,7 +56,7 @@ func is_player_near() -> bool:
 
 # Le difese che si possono costruire qui.
 func allows(type: String) -> bool:
-	return on_path or type == "postazione"
+	return on_path or type in ["postazione", "fionda"]
 
 
 func _process(delta: float) -> void:
@@ -161,8 +163,8 @@ func _update_prompt() -> void:
 			var info: Dictionary = TYPES[ORDER[i]]
 			if allows(ORDER[i]):
 				parts.append("[%d] %s (%d)" % [i + 1, info["nome"], info["costo"]])
-		if parts.size() > 2:
-			text = "  ".join(parts.slice(0, 2)) + "\n" + "  ".join(parts.slice(2))
+		if parts.size() > 3:
+			text = "  ".join(parts.slice(0, 3)) + "\n" + "  ".join(parts.slice(3))
 		else:
 			text = "  ".join(parts) + "\n(fuori dal sentiero)"
 	elif near and defense.needs_repair():

@@ -8,6 +8,7 @@
 extends Node2D
 
 const MolotovScript := preload("res://scripts/molotov.gd")
+const StoneScript := preload("res://scripts/stone.gd")
 const Sprites := preload("res://scripts/sprites.gd")
 const HAMMER_TIME := 0.35   # durata di un colpo di martello
 
@@ -15,6 +16,8 @@ const HAMMER_TIME := 0.35   # durata di un colpo di martello
 @export var max_hp := 3.0
 @export var throw_interval := 2.5     # secondi tra una molotov e l'altra
 @export var throw_range := 360.0
+@export var stone_interval := 1.6     # la Fionda tira più spesso
+@export var stone_range := 380.0
 
 var nome := "Abitante"
 var sheet := "characters/gus"          # foglio di sprite (lo sceglie main.gd)
@@ -137,11 +140,12 @@ func _throw(delta: float) -> void:
 	_throw_cd -= delta
 	if _throw_cd > 0:
 		return
-	# Cerca il robot di terra più vicino alla postazione.
+	# Postazione: robot di terra. Fionda: solo robot volanti.
+	var air: bool = post.anti_air
 	var target = null
-	var best := throw_range
+	var best := stone_range if air else throw_range
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy.flying or enemy.is_dying():
+		if enemy.flying != air or enemy.is_dying():
 			continue
 		var dist: float = enemy.position.distance_to(position)
 		if dist < best:
@@ -149,11 +153,17 @@ func _throw(delta: float) -> void:
 			target = enemy
 	if target == null:
 		return
-	_throw_cd = throw_interval
+	_throw_cd = stone_interval if air else throw_interval
 	_throw_anim = 0.25
 	Audio.play("whoosh", -14.0, 0.15, 1.3)
 	_facing = 1 if target.position.x >= position.x else -1
 	_look = target.position - position
+	if air:
+		var stone = StoneScript.new()
+		stone.position = center()
+		stone.target = target
+		get_tree().current_scene.add_child(stone)
+		return
 	var molotov = MolotovScript.new()
 	molotov.position = center()
 	# Mira un po' più avanti lungo la direzione di marcia del robot.

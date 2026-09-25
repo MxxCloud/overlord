@@ -5,6 +5,7 @@ extends "res://scripts/defenses/defense.gd"
 
 var height := 64.0
 var villager = null      # abitante che la presidia (null = vuota)
+var anti_air := false    # true = colpisce solo i volanti (la Fionda)
 
 
 func _init() -> void:
@@ -37,7 +38,11 @@ func _draw_defense() -> void:
 	block(Rect2(-24, -height - 3, 48, 6), Color("8a6538"))
 	block(Rect2(-24, -height - 15, 3, 12), wood)
 	block(Rect2(21, -height - 15, 3, 12), wood)
-	# Cassa di molotov.
-	block(Rect2(-18, -height - 12, 12, 9), Color("5a8a3a"))
+	_draw_equipment()
 	if villager == null:
 		draw_string(ThemeDB.fallback_font, Vector2(-40, -height - 24), "(vuota)", HORIZONTAL_ALIGNMENT_CENTER, 80, 11, GameState.untint(Color("ffaaaa")))
+
+
+# Cosa c'è sulla piattaforma: qui la cassa di molotov (la Fionda lo cambia).
+func _draw_equipment() -> void:
+	block(Rect2(-18, -height - 12, 12, 9), Color("5a8a3a"))

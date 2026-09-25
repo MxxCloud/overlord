@@ -21,10 +21,12 @@ func _physics_process(_delta: float) -> bool:
 	var slots := get_nodes_in_group("slots")
 	if _frames % 30 == 0:
 		# Costruisce: postazioni ai lati, difese sui sentieri; poi assegna e ripara.
-		for i in slots.size():
+		# Prima i cantieri centrali (fionda e postazione), poi quelli sui sentieri.
+		for i in [5, 4, 0, 1, 2, 3]:
 			var slot = slots[i]
 			if slot.defense == null and slot.job == "":
-				slot.start_build("postazione" if not slot.on_path else _plan[i % _plan.size()])
+				var side := "fionda" if i == 5 else "postazione"
+				slot.start_build(side if not slot.on_path else _plan[i % _plan.size()])
 			elif slot.defense != null and slot.job == "" and slot.defense.needs_repair():
 				if gs.spend_scrap(slot.repair_cost):
 					slot._start_job("ripara", slot.repair_time)
@@ -50,6 +52,7 @@ func _physics_process(_delta: float) -> bool:
 	if main.player.shells == 0:
 		main.player.position = Vector2(700, 215)
 	if gs.finished or _frames > 20000:
+		print("sassi a segno: ", load("res://scripts/stone.gd").hits)
 		print("FINE: finita=%s vinta=%s morale=%d uccisi=%d rottami=%d frame=%d" % [
 			gs.finished, main.player.hp > 0 and gs.morale > 0, gs.morale, gs.kills, gs.scrap, _frames])
 		quit()

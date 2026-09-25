@@ -173,7 +173,8 @@ La campagna è scandita in **giorni** (target: circa 30 giorni in gioco). Il con
 |---|---|---|
 | Recinto rinforzato | Legno | Rallenta, assorbe danni |
 | Fossa con pali | Lavoro | Blocca i robot leggeri, danneggia i quadrupedi |
-| Spaventapasseri di latta | Rottami | Esca: confonde i sensori, attira il fuoco |
+| Spaventapasseri di latta | Rottami | Esca: confonde i sensori, attira il fuoco (anche i droni nei dintorni) |
+| Fionda | Legno + rottami | Torretta presidiata da un abitante: tira sassi solo ai robot volanti, che le molotov non raggiungono |
 | Recinto elettrificato | Carburante + rottami | Alimentato dal trattore. Stordisce e fa corto circuito. |
 | Campana della chiesa | Lavoro | Suonata di notte, genera interferenza acustica (breve stordimento globale) |
 | Catapulta da fieno | Legno + rottami | Artiglieria lenta ad area |

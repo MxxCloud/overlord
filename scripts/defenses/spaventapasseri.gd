@@ -14,6 +14,11 @@ func blocks(_enemy) -> bool:
 	return is_alive()
 
 
+# I droni lo scambiano per un umano e ci vanno contro (vedi enemy.gd).
+func lures_drones() -> bool:
+	return true
+
+
 func _hit_fx(pos: Vector2) -> void:
 	GameState.fx.straw(pos, 4)
 	GameState.fx.sparks(pos, 3)   # la latta sfrigola

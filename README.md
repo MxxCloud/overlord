@@ -31,7 +31,7 @@ Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). L
 | Tasto | Azione |
 |---|---|
 | **W / A / S / D** (o frecce) | Muoversi sulla collina |
-| **1 / 2 / 3 / 4** (vicino a un cantiere vuoto, con la bandierina) | Costruire: Recinto (8 rottami), Fossa (6), Spaventapasseri (5), Postazione (10). I cantieri fuori dai sentieri accettano solo postazioni |
+| **1 / 2 / 3 / 4 / 5** (vicino a un cantiere vuoto, con la bandierina) | Costruire: Recinto (8 rottami), Fossa (6), Spaventapasseri (5), Postazione (10), Fionda (8). I cantieri fuori dai sentieri accettano solo postazioni e fionde |
 | **E** (davanti a una difesa) | Ripararla (3 rottami), oppure assegnare un abitante a una postazione vuota |
 | **Clic sinistro** | Sparare con la doppietta. **Solo 6 cartucce per tutta la notte**: colpisce il primo robot e da vicino fa molto male |
 | **Clic destro su un robot** | Il cane gli morde i cavi e lo stordisce: un robot stordito subisce **danni doppi** |
@@ -51,10 +51,11 @@ Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). L
   - **Postazione:** senza un abitante non fa nulla. Presidiata, lancia molotov. I robot di terra la attaccano.
   - **Recinto:** blocca i robot di terra finché non lo abbattono.
   - **Fossa:** i robot leggeri ci cadono e restano intrappolati. Ne contiene 3; ripararla la svuota.
-  - **Spaventapasseri:** tutti i robot, anche i droni, si fermano ad attaccarlo.
+  - **Spaventapasseri:** tutti i robot si fermano ad attaccarlo, e i droni che passano nei dintorni deviano verso di lui.
+  - **Fionda:** come la postazione serve un abitante, ma tira sassi **solo ai droni** (le molotov non li raggiungono).
 - **Nemici:**
   - **Servitore Domestico:** lento, arriva in gruppo.
-  - **Drone Sondaggio:** vola, e le molotov non lo raggiungono. Spara colpi lenti che si schivano camminando. Serve la doppietta.
+  - **Drone Sondaggio:** vola, e le molotov non lo raggiungono. Spara colpi lenti che si schivano camminando. Servono la fionda o la doppietta.
   - **Segugio:** più veloce, salta le fosse. Il morso del cane gli fa danno doppio.
 - **Il cane** (Bullone) ha un'attesa di qualche secondo tra un ordine e l'altro. Se lo ferisci troppo, per questa notte si ritira (non muore mai).
 

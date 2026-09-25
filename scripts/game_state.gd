@@ -152,6 +152,7 @@ func _setup_input() -> void:
 	_add_keys("costruisci_2", [KEY_2])
 	_add_keys("costruisci_3", [KEY_3])
 	_add_keys("costruisci_4", [KEY_4])
+	_add_keys("costruisci_5", [KEY_5])
 	_add_keys("riavvia", [KEY_ENTER])
 	_add_mouse("spara", MOUSE_BUTTON_LEFT)
 	_add_mouse("cane", MOUSE_BUTTON_RIGHT)

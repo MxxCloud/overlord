@@ -40,7 +40,7 @@ func _ready() -> void:
 	add_child(_stats)
 
 	var help := GameState.make_label(
-		"WASD muovi · Ai cantieri: 1-4 costruisci, E ripara/assegna abitante · " +
+		"WASD muovi · Ai cantieri: 1-5 costruisci, E ripara/assegna abitante · " +
 		"Clic sx spara (poche cartucce!) · Clic dx cane (su un robot = morso, altrove = raccoglie rottami)", 13)
 	help.position = Vector2(16, 692)
 	add_child(help)
