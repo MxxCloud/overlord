@@ -1,2 +1,5 @@
 # Cartella di cache generata da Godot: non va salvata nel repository
 .godot/
+
+# Varianti temporanee dei test (create e cancellate dagli script di prova)
+tests/_*.gd
