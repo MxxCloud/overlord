@@ -15,6 +15,7 @@ extends Node2D
 const Sprites := preload("res://scripts/sprites.gd")
 
 const LURE_RANGE := 260.0   # distanza da cui lo spaventapasseri attira i droni
+const PIT_DPS := 0.5         # danni al secondo dei pali della fossa
 
 var kind := "robot"
 var max_hp := 3.0
@@ -178,6 +179,13 @@ func _physics_process(delta: float) -> void:
 			GameState.fx.electric(center() + Vector2(randf_range(-10, 10), randf_range(-10, 10)), 2)
 		return
 	if trapped:
+		# I pali appuntiti della fossa lo danneggiano piano piano: prima o poi
+		# cade anche se nessuno lo colpisce (altrimenti l'onda non finirebbe mai).
+		hp -= PIT_DPS * delta
+		if randf() < delta * 2.0:
+			GameState.fx.sparks(center(), 2)
+		if hp <= 0:
+			_die()
 		return
 
 	_attack_cd -= delta

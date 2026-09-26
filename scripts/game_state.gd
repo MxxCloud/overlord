@@ -21,7 +21,7 @@ const SCREEN := Vector2(1280, 720)
 const NIGHT := Color(0.36, 0.4, 0.66)
 
 @export var max_morale := 100
-@export var start_scrap := 30       # rottami a inizio notte, per le prime difese
+@export var start_scrap := 22       # rottami a inizio notte, per le prime difese
 
 var morale := 100
 var scrap := 0            # rottami raccolti: servono a riparare le difese

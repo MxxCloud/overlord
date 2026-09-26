@@ -24,18 +24,20 @@ const NAMES := {"servitore": ["servitore", "servitori"], "drone": ["drone", "dro
 var waves := [
 	# Onda 1: "Gentile cliente". Solo servitori, per imparare a costruire.
 	[
-		{"tipo": "servitore", "quanti": 5, "intervallo": 4.0},
+		{"tipo": "servitore", "quanti": 6, "intervallo": 3.5},
 	],
-	# Onda 2: arrivano i droni (le molotov non li raggiungono: serve la doppietta).
+	# Onda 2: i droni in massa (le molotov non li raggiungono: serve la fionda)
+	# e un primo segugio, che salta le fosse.
 	[
-		{"tipo": "servitore", "quanti": 7, "intervallo": 3.5},
-		{"tipo": "drone", "quanti": 3, "intervallo": 5.0, "ritardo": 6.0},
+		{"tipo": "servitore", "quanti": 9, "intervallo": 3.0},
+		{"tipo": "drone", "quanti": 5, "intervallo": 4.0, "ritardo": 6.0},
+		{"tipo": "segugio", "quanti": 1, "intervallo": 1.0, "ritardo": 14.0},
 	],
-	# Onda 3: i segugi saltano le fosse. Qui il cane serve davvero.
+	# Onda 3: l'assalto. Tanti segugi: qui il cane serve davvero.
 	[
-		{"tipo": "servitore", "quanti": 8, "intervallo": 3.0},
-		{"tipo": "segugio", "quanti": 3, "intervallo": 6.0, "ritardo": 5.0},
-		{"tipo": "drone", "quanti": 3, "intervallo": 6.0, "ritardo": 10.0},
+		{"tipo": "servitore", "quanti": 16, "intervallo": 2.0},
+		{"tipo": "segugio", "quanti": 6, "intervallo": 4.0, "ritardo": 4.0},
+		{"tipo": "drone", "quanti": 7, "intervallo": 3.5, "ritardo": 8.0},
 	],
 ]
 

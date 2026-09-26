@@ -31,7 +31,7 @@ Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). L
 | Tasto | Azione |
 |---|---|
 | **W / A / S / D** (o frecce) | Muoversi sulla collina |
-| **1 / 2 / 3 / 4 / 5** (vicino a un cantiere vuoto, con la bandierina) | Costruire: Recinto (8 rottami), Fossa (6), Spaventapasseri (5), Postazione (10), Fionda (8). I cantieri fuori dai sentieri accettano solo postazioni e fionde |
+| **1 / 2 / 3 / 4 / 5** (vicino a un cantiere vuoto, con la bandierina) | Costruire: Recinto (8 rottami), Fossa (6), Spaventapasseri (5), Postazione (12), Fionda (10). I cantieri fuori dai sentieri accettano solo postazioni e fionde |
 | **E** (davanti a una difesa) | Ripararla (3 rottami), oppure assegnare un abitante a una postazione vuota |
 | **Clic sinistro** | Sparare con la doppietta. **Solo 6 cartucce per tutta la notte**: colpisce il primo robot e da vicino fa molto male |
 | **Clic destro su un robot** | Il cane gli morde i cavi e lo stordisce: un robot stordito subisce **danni doppi** |
@@ -41,7 +41,7 @@ Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). L
 ## Regole della notte
 
 - La collina è vista **dall'alto**: il villaggio è in cima, i robot sbucano dal bosco in basso e salgono lungo **due sentieri**.
-- Parti con **30 rottami** e **6 cantieri vuoti**: 4 sui sentieri (bloccano i robot) e 2 al centro (solo postazioni, che colpiscono entrambi i sentieri). Hai 35 secondi prima della prima onda: scegli cosa costruire.
+- Parti con **22 rottami** (non bastano per tutto: scegli!) e **6 cantieri vuoti**: 4 sui sentieri (bloccano i robot) e 2 al centro (solo postazioni e fionde, che coprono entrambi i sentieri). Hai 35 secondi prima della prima onda: scegli cosa costruire.
 - **Costruire richiede tempo.** Un abitante libero arriva dal villaggio e lavora al cantiere. Se un robot lo raggiunge mentre lavora, resta ferito per il resto della notte.
 - **Abitanti** (Nonna Edda, Gus, Padre Tobia): costruiscono e riparano, oppure presidiano una **postazione** e da lì lanciano molotov sui robot di terra. Se la postazione crolla, l'abitante resta ferito.
 - **Rottami:** i robot distrutti li lasciano a terra. Li raccogli passandoci sopra, oppure mandando il cane.
@@ -50,7 +50,7 @@ Sei il **comandante della collina**, non un eroe d'azione (come in *Kingdom*). L
 - **Difese:**
   - **Postazione:** senza un abitante non fa nulla. Presidiata, lancia molotov. I robot di terra la attaccano.
   - **Recinto:** blocca i robot di terra finché non lo abbattono.
-  - **Fossa:** i robot leggeri ci cadono e restano intrappolati. Ne contiene 3; ripararla la svuota.
+  - **Fossa:** i robot leggeri ci cadono, restano intrappolati e i pali li danneggiano piano piano. Ne contiene 3; ripararla la svuota.
   - **Spaventapasseri:** tutti i robot si fermano ad attaccarlo, e i droni che passano nei dintorni deviano verso di lui.
   - **Fionda:** come la postazione serve un abitante, ma tira sassi **solo ai droni** (le molotov non li raggiungono).
 - **Nemici:**

@@ -17,9 +17,9 @@ const TYPES := {
 		"script": preload("res://scripts/defenses/fossa.gd")},
 	"spaventapasseri": {"nome": "Spaventapasseri", "costo": 5, "tempo": 3.0,
 		"script": preload("res://scripts/defenses/spaventapasseri.gd")},
-	"postazione": {"nome": "Postazione", "costo": 10, "tempo": 6.0,
+	"postazione": {"nome": "Postazione", "costo": 12, "tempo": 6.0,
 		"script": preload("res://scripts/defenses/postazione.gd")},
-	"fionda": {"nome": "Fionda", "costo": 8, "tempo": 4.0,
+	"fionda": {"nome": "Fionda", "costo": 10, "tempo": 4.0,
 		"script": preload("res://scripts/defenses/fionda.gd")},
 }
 const ORDER := ["recinto", "fossa", "spaventapasseri", "postazione", "fionda"]
