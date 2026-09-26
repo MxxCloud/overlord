@@ -29,15 +29,15 @@ var waves := [
 	# Onda 2: i droni in massa (le molotov non li raggiungono: serve la fionda)
 	# e un primo segugio, che salta le fosse.
 	[
-		{"tipo": "servitore", "quanti": 9, "intervallo": 3.0},
+		{"tipo": "servitore", "quanti": 10, "intervallo": 2.8},
 		{"tipo": "drone", "quanti": 5, "intervallo": 4.0, "ritardo": 6.0},
-		{"tipo": "segugio", "quanti": 1, "intervallo": 1.0, "ritardo": 14.0},
+		{"tipo": "segugio", "quanti": 2, "intervallo": 8.0, "ritardo": 12.0},
 	],
 	# Onda 3: l'assalto. Tanti segugi: qui il cane serve davvero.
 	[
 		{"tipo": "servitore", "quanti": 16, "intervallo": 2.0},
-		{"tipo": "segugio", "quanti": 6, "intervallo": 4.0, "ritardo": 4.0},
-		{"tipo": "drone", "quanti": 7, "intervallo": 3.5, "ritardo": 8.0},
+		{"tipo": "segugio", "quanti": 8, "intervallo": 3.5, "ritardo": 4.0},
+		{"tipo": "drone", "quanti": 8, "intervallo": 3.0, "ritardo": 8.0},
 	],
 ]
 
